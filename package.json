@@ -1,0 +1,70 @@
+{
+  "name": "a6s-fbl-k8s-plugin",
+  "version": "0.0.1",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "tsc": "tsc",
+    "rimraf": "rimraf",
+    "depcheck": "yarn-check",
+    "start": "node dist/src/cli.js",
+    "test": "nyc --reporter=html --reporter=text mocha",
+    "build": "rimraf ./dist/ && tsc",
+    "lint": "tslint -c tslint.json 'src/**/*.ts' 'test/**/*.ts'",
+    "prepublishOnly": "npm run build && npm run lint"
+  },
+  "author": "API Geeks LLC",
+  "license": "MIT",
+  "dependencies": {
+    "chai-as-promised": "7.1.1",
+    "colors": "1.3.2",
+    "fbl": "0.4.5",
+    "joi": "13.6.0",
+    "js-yaml": "3.12.0",
+    "reflect-metadata": "0.1.12",
+    "typedi": "0.8.0"
+  },
+  "devDependencies": {
+    "@types/chai": "4.1.4",
+    "@types/joi": "13.4.4",
+    "@types/js-yaml": "3.11.2",
+    "@types/node": "10.9.4",
+    "chai": "4.1.2",
+    "husky": "1.1.2",
+    "mocha": "5.2.0",
+    "mocha-typescript": "1.1.17",
+    "mochawesome": "3.0.3",
+    "nyc": "13.0.1",
+    "rimraf": "2.6.2",
+    "source-map-support": "0.5.9",
+    "tslint": "5.11.0",
+    "typescript": "3.0.3",
+    "yarn-check": "0.0.3"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "yarn lint"
+    }
+  },
+  "nyc": {
+    "check-coverage": true,
+    "per-file": true,
+    "lines": 100,
+    "statements": 100,
+    "functions": 100,
+    "branches": 100,
+    "exclude": [
+      "dist/src/**/index.js",
+      "dist/index.js",
+      "dist/test/**/*.js"
+    ]
+  },
+  "keywords": [
+    "fbl",
+    "kubectl",
+    "helm",
+    "k8s",
+    "a6s",
+    "kubernetes"
+  ]
+}
