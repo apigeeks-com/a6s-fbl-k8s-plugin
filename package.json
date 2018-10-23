@@ -5,6 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "tsc": "tsc",
+    "nyc": "nyc",
     "rimraf": "rimraf",
     "depcheck": "yarn-check",
     "start": "node dist/src/cli.js",

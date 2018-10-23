@@ -1,0 +1,6 @@
+version: '3'
+services:
+  plugin:
+    image: a6s-fbl-k8s-plugin:1.0.0
+    build: .
+    privileged: true

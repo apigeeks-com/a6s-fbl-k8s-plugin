@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# start docker
+DOCKER_DAEMON_ARGS=-D wrapdocker
+
+# create k8s cluster
+kind create cluster
+
+# export kube config
+export KUBECONFIG="/root/.kube/kind-config-1"
+
+# navigate to project dir
+cd /usr/app
+
+# run tests
+yarn build && yarn test
