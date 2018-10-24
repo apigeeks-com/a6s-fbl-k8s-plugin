@@ -3,12 +3,12 @@ import * as Joi from 'joi';
 import {IContext, IActionHandlerMetadata} from 'fbl/dist/src/interfaces';
 import {Container} from 'typedi';
 import {FSUtil} from 'fbl/dist/src/utils';
-import {HelmChart_JOI_SCHEMA} from '../../interfaces/IHelmChart';
+import {HelmChart_JOI_SCHEMA} from '../../interfaces';
 import {K8sHelmService} from '../../services/K8sHelmService';
 import {promisify} from 'util';
 import {exists} from 'fs';
 
-const packageJson = require('../../../package.json');
+const packageJson = require('../../../../package.json');
 
 export class K8sHelmUpgradeOrInstallActionHandler extends ActionHandler {
     private static metadata = <IActionHandlerMetadata> {

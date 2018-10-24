@@ -7,7 +7,7 @@ import {FSUtil} from 'fbl/dist/src/utils';
 import {IK8sObject, IK8sObject_JOI_SCHEMA} from '../../interfaces';
 import {basename} from 'path';
 
-const packageJson = require('../../../package.json');
+const packageJson = require('../../../../package.json');
 
 export class K8sApplyConfigMapActionHandler extends ActionHandler {
     private static metadata = <IActionHandlerMetadata> {
@@ -20,8 +20,10 @@ export class K8sApplyConfigMapActionHandler extends ActionHandler {
         ]
     };
 
-    private static schema = IK8sObject_JOI_SCHEMA
+    private static schema = Joi.object()
         .keys({
+            name: Joi.string().required().min(1),
+            namespace: Joi.string().min(1),
             files: Joi.array().min(1).items(Joi.string().required()).optional(),
             inline: Joi.object()
                 .pattern(
@@ -30,8 +32,10 @@ export class K8sApplyConfigMapActionHandler extends ActionHandler {
                 )
                 .min(1)
                 .optional(),
-        });
+        })
+        .or(['files', 'inline']);
 
+    /* istanbul ignore next */
     getMetadata(): IActionHandlerMetadata {
         return K8sApplyConfigMapActionHandler.metadata;
     }
@@ -56,7 +60,7 @@ export class K8sApplyConfigMapActionHandler extends ActionHandler {
 
         if (options.inline) {
             for (const key of Object.keys(options.inline)) {
-                object.data[key] = options.inline[key];
+                object.data[key] = options.inline[key].toString();
             }
         }
 

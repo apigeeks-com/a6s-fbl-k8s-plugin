@@ -6,7 +6,7 @@ import {K8sKubectlService} from '../../services';
 import {IK8sObject, IK8sObject_JOI_SCHEMA} from '../../interfaces';
 import {FSUtil} from 'fbl/dist/src/utils';
 
-const packageJson = require('../../../package.json');
+const packageJson = require('../../../../package.json');
 
 export class K8sApplyTLSSecretActionHandler extends ActionHandler {
     private static metadata = <IActionHandlerMetadata> {

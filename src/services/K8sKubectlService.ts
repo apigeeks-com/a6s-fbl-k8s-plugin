@@ -57,6 +57,7 @@ export class K8sKubectlService {
     /**
      * Apply object
      * @param {IK8sObject} k8sObject
+     * @param {IContext} context
      * @return {Promise<void>}
      */
     async applyObject(k8sObject: IK8sObject, context: IContext): Promise<void> {
@@ -75,8 +76,12 @@ export class K8sKubectlService {
 
         const contextEntity = K8sKubectlService.createEntity(k8sObject);
         context.entities.registered.push(contextEntity);
-        // TODO: move to created if object previously didn't exist
-        context.entities.updated.push(contextEntity);
+
+        if (result.stdout.split(' ')[1] === 'created') {
+            context.entities.created.push(contextEntity);
+        } else {
+            context.entities.updated.push(contextEntity);
+        }
     }
 
     private static createEntity(k8sObject: IK8sObject): IContextEntity {
@@ -127,7 +132,6 @@ export class K8sKubectlService {
         return result.stdout
             .split('\n')
             .map(l => l.trim().split('/').pop())
-            .filter(l => l)
-            ;
+            .filter(l => l);
     }
 }

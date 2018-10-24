@@ -5,7 +5,7 @@ import {IK8sObject_JOI_SCHEMA} from '../../interfaces';
 import {Container} from 'typedi';
 import {K8sKubectlService} from '../../services';
 
-const packageJson = require('../../../package.json');
+const packageJson = require('../../../../package.json');
 
 export class K8sApplyObjectActionHandler extends ActionHandler {
     private static metadata = <IActionHandlerMetadata> {

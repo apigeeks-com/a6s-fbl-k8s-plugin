@@ -9,7 +9,7 @@ import {basename} from 'path';
 import {promisify} from 'util';
 import {readFile} from 'fs';
 
-const packageJson = require('../../../package.json');
+const packageJson = require('../../../../package.json');
 
 export class K8sApplyGenericSecretActionHandler extends ActionHandler {
     private static metadata = <IActionHandlerMetadata> {

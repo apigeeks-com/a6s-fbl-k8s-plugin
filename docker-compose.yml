@@ -4,3 +4,7 @@ services:
     image: a6s-fbl-k8s-plugin:1.0.0
     build: .
     privileged: true
+    volumes:
+      - ./coverage:/usr/app/coverage
+      - ./.nyc_output:/usr/app/.nyc_output
+      - ./mochawesome-report:/usr/app/mochawesome-report

@@ -5,7 +5,7 @@ import {Container} from 'typedi';
 import {K8sKubectlService} from '../../services';
 import {IK8sObject, IK8sObject_JOI_SCHEMA} from '../../interfaces';
 
-const packageJson = require('../../../package.json');
+const packageJson = require('../../../../package.json');
 
 export class K8sApplyDockerRegistrySecretActionHandler extends ActionHandler {
     private static metadata = <IActionHandlerMetadata> {
