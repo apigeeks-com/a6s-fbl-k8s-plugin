@@ -1,29 +1,37 @@
-import {exec} from 'child_process';
+import {exec, spawn} from 'child_process';
 import {Service} from 'typedi';
 
 @Service()
 export class ChildProcessService {
     /**
      * Exec shell command
-     * @param {string} command
+     * @param {string} cmd
+     * @param {string[]} args
+     * @param {string} cwd
      * @returns {Promise<{stdout: string, stderr: string, code: number}>}
      */
-    exec(command: string): Promise<{stdout: string, stderr: string, code: number}> {
-        return new Promise<{stdout: string, stderr: string, code: number}>((resolve) => {
-            exec(command, (err, stdout, stderr) => {
-                stdout = stdout && stdout.trim();
-                stderr = stderr && stderr.trim();
-                let code = 0;
+    exec(cmd: string, args: string[], cwd = '.'): Promise<{stdout: string, stderr: string, code: number}> {
+        return new Promise<{code: number, stdout: string, stderr: string}>(async (resolve) => {
+            const process = spawn(cmd, args, {
+                cwd: cwd
+            });
 
-                if (err) {
-                    const _err: any = err;
+            const stdout: string[] = [];
+            process.stdout.on('data', (data) => {
+                stdout.push(data.toString().trim());
+            });
 
-                    if (_err.code) {
-                        code = _err.code;
-                    }
-                }
+            const stderr: string[] = [];
+            process.stderr.on('data', (data) => {
+                stderr.push(data.toString().trim());
+            });
 
-                resolve({stdout, stderr, code});
+            process.on('close', (code) => {
+                resolve({
+                    stdout: stdout.join('\n'),
+                    stderr: stderr.join('\n'),
+                    code: code
+                });
             });
         });
     }

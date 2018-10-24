@@ -31,3 +31,34 @@ kubectl.ConfigMap:
     # ... or number
     port: 8000 
 ```
+
+## Action Handler: Apply Secret (Generic) 
+
+**ID:** a6s.k8s.kubectl.apply.Secret.generic
+
+**Aliases:**
+ - k8s.kubectl.apply.Secret.generic
+ - kubectl.apply.Secret.generic
+ - kubectl.Secret.generic
+ - kubectl.Secret
+ 
+**Example:**
+
+```yaml
+kubectl.Secret: 
+  # Name of the ConfigMap
+  name: application-secret
+  # [optional] K8s namespace
+  namespace: default
+  # [optional] files to apply
+  files:
+    # note: just like with kubectl test.yml will be used as key inside the ConfigMap
+    # make sure not to pass paths to files with same name
+    - some/path/to/test.yml
+  # [optional] define config map values inline (key/value pairs)
+  inline:    
+    # where value can be a string ...
+    host: foo.bar
+    # ... or number
+    port: 8000 
+```

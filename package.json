@@ -10,6 +10,7 @@
     "depcheck": "yarn-check",
     "start": "node dist/src/cli.js",
     "test": "nyc --reporter=html --reporter=text mocha",
+    "docker:test": "docker-compose up --build --abort-on-container-exit",
     "build": "rimraf ./dist/ && tsc",
     "lint": "tslint -c tslint.json 'src/**/*.ts' 'test/**/*.ts'",
     "prepublishOnly": "npm run build && npm run lint"

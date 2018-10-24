@@ -23,8 +23,10 @@ export class K8sApplyGenericSecretActionHandler extends ActionHandler {
         ]
     };
 
-    private static schema = IK8sObject_JOI_SCHEMA
+    private static schema = Joi.object()
         .keys({
+            name: Joi.string().required().min(1),
+            namespace: Joi.string().min(1),
             files: Joi.array().min(1).items(Joi.string().required()).optional(),
             inline: Joi.object()
                 .pattern(
@@ -33,7 +35,8 @@ export class K8sApplyGenericSecretActionHandler extends ActionHandler {
                 )
                 .min(1)
                 .optional(),
-        });
+        })
+        .xor(['files', 'inline']);
 
     getMetadata(): IActionHandlerMetadata {
         return K8sApplyGenericSecretActionHandler.metadata;

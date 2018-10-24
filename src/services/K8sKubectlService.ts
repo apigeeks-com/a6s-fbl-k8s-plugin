@@ -22,7 +22,13 @@ export class K8sKubectlService {
      * @returns {Promise<void>}
      */
     async deleteObject(k8sObject: IK8sObject): Promise<void> {
-        const result = await this.childProcessService.exec(`kubectl delete ${k8sObject.kind} ${k8sObject.metadata.name}`);
+        const result = await this.childProcessService.exec('kubectl',
+            [
+                'delete',
+                k8sObject.kind,
+                k8sObject.metadata.name
+            ]
+        );
 
         if (result.code !== 0) {
             throw new Error('Unexpected error occurred ' + JSON.stringify(result));
@@ -39,9 +45,10 @@ export class K8sKubectlService {
         const tmpFile = await this.tempPathsRegistry.createTempFile(false, '.yml');
         await promisify(writeFile)(tmpFile, dump(k8sObject), 'utf8');
 
-        const cmd = 'kubectl create -f ' + tmpFile;
-
-        const result = await this.childProcessService.exec(cmd);
+        const result = await this.childProcessService.exec('kubectl', [
+            'create',
+            '-f', tmpFile
+        ]);
 
         if (result.code !== 0) {
             throw new Error(
@@ -64,9 +71,10 @@ export class K8sKubectlService {
         const tmpFile = await this.tempPathsRegistry.createTempFile(false, '.yml');
         await promisify(writeFile)(tmpFile, dump(k8sObject), 'utf8');
 
-        const cmd = 'kubectl apply -f ' + tmpFile;
-
-        const result = await this.childProcessService.exec(cmd);
+        const result = await this.childProcessService.exec('kubectl', [
+            'apply',
+            '-f', tmpFile
+        ]);
 
         if (result.code !== 0) {
             throw new Error(
@@ -98,7 +106,12 @@ export class K8sKubectlService {
      * @returns {Promise<any>}
      */
     async getObject(k8sObject: IK8sObject): Promise<any> {
-        const result = await this.childProcessService.exec(`kubectl get ${k8sObject.kind} ${k8sObject.metadata.name} -o json`);
+        const result = await this.childProcessService.exec('kubectl', [
+            'get',
+            k8sObject.kind,
+            k8sObject.metadata.name,
+            '-o', 'json'
+        ]);
 
         if (result.stderr.trim().indexOf('Error from server (NotFound)') === 0) {
             return null;
@@ -119,15 +132,15 @@ export class K8sKubectlService {
      * @return {Promise<string[]>}
      */
     async listObjects(kind: string, namespace = ''): Promise<string[]> {
-        const cmd = [`kubectl get ${kind}`];
+        const args = ['get', kind];
 
         if (namespace !== '') {
-            cmd.push('--namespace ' + namespace);
+            args.push('--namespace', namespace);
         }
 
-        cmd.push('-o name');
+        args.push('-o name');
 
-        const result = await this.childProcessService.exec(cmd.join(' '));
+        const result = await this.childProcessService.exec('kubectl', args);
 
         return result.stdout
             .split('\n')

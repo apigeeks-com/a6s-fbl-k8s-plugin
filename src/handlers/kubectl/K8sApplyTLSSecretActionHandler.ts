@@ -19,11 +19,19 @@ export class K8sApplyTLSSecretActionHandler extends ActionHandler {
         ]
     };
 
-    private static schema = IK8sObject_JOI_SCHEMA
+    private static schema = Joi.object()
         .keys({
-            cert: Joi.string().required(),
-            key: Joi.string().required(),
-        });
+            name: Joi.string().required().min(1),
+            namespace: Joi.string().min(1),
+            inline: Joi.object({
+                cert: Joi.string().required(),
+                key: Joi.string().required()
+            }),
+            files: Joi.object({
+                cert: Joi.string().required(),
+                key: Joi.string().required()
+            })
+        }).xor(['inline', 'files']);
 
     getMetadata(): IActionHandlerMetadata {
         return K8sApplyTLSSecretActionHandler.metadata;
@@ -49,8 +57,13 @@ export class K8sApplyTLSSecretActionHandler extends ActionHandler {
         }
 
         object.data = {};
-        object.data['tls.crt'] = await FSUtil.readTextFile(FSUtil.getAbsolutePath(options.cert, snapshot.wd));
-        object.data['tls.key'] = await FSUtil.readTextFile(FSUtil.getAbsolutePath(options.key, snapshot.wd));
+        if (options.inline) {
+            object.data['tls.crt'] = options.inline.cert;
+            object.data['tls.key'] = options.inline.key;
+        } else {
+            object.data['tls.crt'] = await FSUtil.readTextFile(FSUtil.getAbsolutePath(options.cert, snapshot.wd));
+            object.data['tls.key'] = await FSUtil.readTextFile(FSUtil.getAbsolutePath(options.key, snapshot.wd));
+        }
 
         await Container.get(K8sKubectlService).applyObject(object, context);
     }

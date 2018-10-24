@@ -1,6 +1,6 @@
 import {suite, test} from 'mocha-typescript';
 
-import {K8sApplyConfigMapActionHandler} from '../../../src/handlers/kubectl';
+import {K8sApplyGenericSecretActionHandler} from '../../../src/handlers/kubectl';
 import {ContextUtil} from 'fbl/dist/src/utils';
 import {ActionSnapshot} from 'fbl/dist/src/models';
 import * as assert from 'assert';
@@ -16,7 +16,7 @@ const chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
 
 @suite()
-class K8sApplyConfigMapActionHandlerTestSuite {
+class K8sApplyGenericSecretActionHandlerTestSuite {
     async after(): Promise<void> {
         await Container.get(TempPathsRegistry).cleanup();
         Container.reset();
@@ -24,7 +24,7 @@ class K8sApplyConfigMapActionHandlerTestSuite {
 
     @test()
     async failValidation() {
-        const actionHandler = new K8sApplyConfigMapActionHandler();
+        const actionHandler = new K8sApplyGenericSecretActionHandler();
         const context = ContextUtil.generateEmptyContext();
         const snapshot = new ActionSnapshot('.', {}, '', 0);
 
@@ -58,11 +58,21 @@ class K8sApplyConfigMapActionHandlerTestSuite {
                 inline: {}
             }, context, snapshot)
         ).to.be.rejected;
+
+        await chai.expect(
+            actionHandler.validate({
+                name: 'test',
+                files: ['test.yml'],
+                inline: {
+                    test: 1
+                }
+            }, context, snapshot)
+        ).to.be.rejected;
     }
 
     @test()
     async passValidation() {
-        const actionHandler = new K8sApplyConfigMapActionHandler();
+        const actionHandler = new K8sApplyGenericSecretActionHandler();
         const context = ContextUtil.generateEmptyContext();
         const snapshot = new ActionSnapshot('.', {}, '', 0);
 
@@ -77,24 +87,16 @@ class K8sApplyConfigMapActionHandlerTestSuite {
                 test: 1
             }
         }, context, snapshot);
-
-        await actionHandler.validate({
-            name: 'test',
-            files: ['test.yml'],
-            inline: {
-                test: 1
-            }
-        }, context, snapshot);
     }
 
     @test()
-    async createNewConfigMapInline(): Promise<void> {
-        const actionHandler = new K8sApplyConfigMapActionHandler();
+    async createNewSecretInline(): Promise<void> {
+        const actionHandler = new K8sApplyGenericSecretActionHandler();
         const context = ContextUtil.generateEmptyContext();
         const snapshot = new ActionSnapshot('.', {}, '', 0);
 
         const options = {
-            name: 'config-map-test-inline',
+            name: 'secret-generic-test-inline',
             namespace: 'default',
             inline: {
                 host: 'foo.bar',
@@ -105,13 +107,13 @@ class K8sApplyConfigMapActionHandlerTestSuite {
         await actionHandler.validate(options, context, snapshot);
         await actionHandler.execute(options, context, snapshot);
 
-        const result = await Container.get(ChildProcessService).exec('kubectl', ['get', 'configmap', options.name, '-o', 'json']);
+        const result = await Container.get(ChildProcessService).exec('kubectl', ['get', 'secret', options.name, '-o', 'json']);
 
         assert.strictEqual(result.code, 0);
-        const configMap = JSON.parse(result.stdout);
-        assert.deepStrictEqual(configMap.data, {
-            host: 'foo.bar',
-            port: '8000'
+        const secret = JSON.parse(result.stdout);
+        assert.deepStrictEqual(secret.data, {
+            host: new Buffer('foo.bar').toString('base64'),
+            port: new Buffer('8000').toString('base64')
         });
 
         assert.strictEqual(context.entities.registered.length, 1);
@@ -119,8 +121,8 @@ class K8sApplyConfigMapActionHandlerTestSuite {
     }
 
     @test()
-    async createNewConfigMapFiles(): Promise<void> {
-        const actionHandler = new K8sApplyConfigMapActionHandler();
+    async createNewSecretFiles(): Promise<void> {
+        const actionHandler = new K8sApplyGenericSecretActionHandler();
         const context = ContextUtil.generateEmptyContext();
         const snapshot = new ActionSnapshot('.', {}, '', 0);
 
@@ -128,19 +130,19 @@ class K8sApplyConfigMapActionHandlerTestSuite {
         await promisify(writeFile)(tempFile, 'test=true', 'utf8');
 
         const options = {
-            name: 'config-map-test-files',
+            name: 'secret-generic-test-files',
             files: [tempFile]
         };
 
         await actionHandler.validate(options, context, snapshot);
         await actionHandler.execute(options, context, snapshot);
 
-        const result = await Container.get(ChildProcessService).exec('kubectl', ['get', 'configmap', options.name, '-o', 'json']);
+        const result = await Container.get(ChildProcessService).exec('kubectl', ['get', 'secret', options.name, '-o', 'json']);
 
         assert.strictEqual(result.code, 0);
-        const configMap = JSON.parse(result.stdout);
-        assert.deepStrictEqual(configMap.data, {
-            [basename(tempFile)]: 'test=true'
+        const secret = JSON.parse(result.stdout);
+        assert.deepStrictEqual(secret.data, {
+            [basename(tempFile)]: new Buffer('test=true').toString('base64')
         });
 
         assert.strictEqual(context.entities.registered.length, 1);
@@ -148,8 +150,8 @@ class K8sApplyConfigMapActionHandlerTestSuite {
     }
 
     @test()
-    async createCombinedConfigMap(): Promise<void> {
-        const actionHandler = new K8sApplyConfigMapActionHandler();
+    async createCombinedSecret(): Promise<void> {
+        const actionHandler = new K8sApplyGenericSecretActionHandler();
         const context = ContextUtil.generateEmptyContext();
         const snapshot = new ActionSnapshot('.', {}, '', 0);
 
@@ -157,7 +159,7 @@ class K8sApplyConfigMapActionHandlerTestSuite {
         await promisify(writeFile)(tempFile, 'test=true', 'utf8');
 
         const options = {
-            name: 'config-map-test-combined',
+            name: 'secret-generic-test-combined',
             files: [tempFile],
             inline: {
                 host: 'foo.bar',
@@ -168,14 +170,14 @@ class K8sApplyConfigMapActionHandlerTestSuite {
         await actionHandler.validate(options, context, snapshot);
         await actionHandler.execute(options, context, snapshot);
 
-        const result = await Container.get(ChildProcessService).exec('kubectl', ['get', 'configmap', options.name, '-o', 'json']);
+        const result = await Container.get(ChildProcessService).exec('kubectl', ['get', 'secret', options.name, '-o', 'json']);
 
         assert.strictEqual(result.code, 0);
-        const configMap = JSON.parse(result.stdout);
-        assert.deepStrictEqual(configMap.data, {
-            [basename(tempFile)]: 'test=true',
-            host: 'foo.bar',
-            port: '8000'
+        const secret = JSON.parse(result.stdout);
+        assert.deepStrictEqual(secret.data, {
+            [basename(tempFile)]: new Buffer('test=true').toString('base64'),
+            host: new Buffer('foo.bar').toString('base64'),
+            port: new Buffer('8000').toString('base64')
         });
 
         assert.strictEqual(context.entities.registered.length, 1);
@@ -183,13 +185,13 @@ class K8sApplyConfigMapActionHandlerTestSuite {
     }
 
     @test()
-    async updateConfigMapByName(): Promise<void> {
-        const actionHandler = new K8sApplyConfigMapActionHandler();
+    async updateSecretByName(): Promise<void> {
+        const actionHandler = new K8sApplyGenericSecretActionHandler();
         const context = ContextUtil.generateEmptyContext();
         const snapshot = new ActionSnapshot('.', {}, '', 0);
 
         const options = {
-            name: 'config-map-test-override',
+            name: 'secret-generic-test-override',
             inline: {
                 host: 'foo.bar',
                 port: 8000
@@ -199,27 +201,27 @@ class K8sApplyConfigMapActionHandlerTestSuite {
         await actionHandler.validate(options, context, snapshot);
         await actionHandler.execute(options, context, snapshot);
 
-        let result = await Container.get(ChildProcessService).exec('kubectl', ['get', 'configmap', options.name, '-o', 'json']);
+        let result = await Container.get(ChildProcessService).exec('kubectl', ['get', 'secret', options.name, '-o', 'json']);
 
         assert.strictEqual(result.code, 0);
-        let configMap = JSON.parse(result.stdout);
-        assert.deepStrictEqual(configMap.data, {
-            host: 'foo.bar',
-            port: '8000'
+        let secret = JSON.parse(result.stdout);
+        assert.deepStrictEqual(secret.data, {
+            host: new Buffer('foo.bar').toString('base64'),
+            port: new Buffer('8000').toString('base64')
         });
 
-        // update config map
+        // update secret
 
         options.inline.port = 9999;
         await actionHandler.execute(options, context, snapshot);
 
-        result = await Container.get(ChildProcessService).exec('kubectl', ['get', 'configmap', options.name, '-o', 'json']);
+        result = await Container.get(ChildProcessService).exec('kubectl', ['get', 'secret', options.name, '-o', 'json']);
 
         assert.strictEqual(result.code, 0);
-        configMap = JSON.parse(result.stdout);
-        assert.deepStrictEqual(configMap.data, {
-            host: 'foo.bar',
-            port: '9999'
+        secret = JSON.parse(result.stdout);
+        assert.deepStrictEqual(secret.data, {
+            host: new Buffer('foo.bar').toString('base64'),
+            port: new Buffer('9999').toString('base64')
         });
 
         assert.strictEqual(context.entities.registered.length, 2);

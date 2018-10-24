@@ -18,12 +18,14 @@ export class K8sApplyDockerRegistrySecretActionHandler extends ActionHandler {
         ]
     };
 
-    private static schema = IK8sObject_JOI_SCHEMA
+    private static schema = Joi.object()
         .keys({
+            name: Joi.string().required().min(1),
+            namespace: Joi.string().min(1),
             server: Joi.string().required(),
             username: Joi.string().required(),
             password: Joi.string().required(),
-            email: Joi.string().required(),
+            email: Joi.string().required()
         });
 
     getMetadata(): IActionHandlerMetadata {

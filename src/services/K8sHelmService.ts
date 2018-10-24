@@ -21,8 +21,11 @@ export class K8sHelmService {
      * @return {Promise<void>}
      */
     async remove(name: string): Promise<void> {
-        const cmd = `helm del --purge ${name}`;
-        const result = await this.childProcessService.exec(cmd);
+        const result = await this.childProcessService.exec('helm', [
+            'del',
+            '--purge',
+            name
+        ]);
 
         if (result.code !== 0) {
             throw new Error(result.stderr);
@@ -35,41 +38,41 @@ export class K8sHelmService {
      * @return {Promise<void>}
      */
     async updateOrInstall(config: IHelmChart): Promise<void> {
-        const cmd = [
-            'helm upgrade --install'
+        const args = [
+            'upgrade', '--install'
         ];
 
         if (config.namespace) {
-            cmd.push('--namespace ' + config.namespace);
+            args.push('--namespace', config.namespace);
         }
 
         if (config.tillerNamespace) {
-            cmd.push('--tiller-namespace ' + config.tillerNamespace);
+            args.push('--tiller-namespace', config.tillerNamespace);
         }
 
         if (config.hasOwnProperty('timeout')) {
-            cmd.push('--timeout ' + config.timeout);
+            args.push('--timeout', config.timeout.toString());
         }
 
         if (config.wait) {
-            cmd.push('--wait');
+            args.push('--wait');
         }
 
         // tslint:disable-next-line
         config.variable_files && config.variable_files.forEach(f => {
-            cmd.push(`-f ${f}`);
+            args.push('-f', f);
         });
 
         if (config.variables) {
             const tmpFile = await this.tempPathsRegistry.createTempFile(false, '.yml');
             await promisify(writeFile)(tmpFile, dump(config.variables), 'utf8');
-            cmd.push(`-f ${tmpFile}`);
+            args.push('-f', tmpFile);
         }
 
-        cmd.push(config.name);
-        cmd.push(config.chart);
+        args.push(config.name);
+        args.push(config.chart);
 
-        const result = await this.childProcessService.exec(cmd.join(' '));
+        const result = await this.childProcessService.exec('helm', args);
 
         if (result.code !== 0) {
             throw new Error(result.stderr);
@@ -81,7 +84,7 @@ export class K8sHelmService {
      * @returns {Promise<string[]>}
      */
     async listInstalledHelms(): Promise<string[]> {
-        const result = await this.childProcessService.exec('helm list -q');
+        const result = await this.childProcessService.exec('helm', ['list', '-q']);
 
         return result.stdout
             .split('\n')
@@ -96,7 +99,7 @@ export class K8sHelmService {
      * @returns {Promise<boolean>}
      */
     async isDeploymentExists(name: string): Promise<boolean> {
-        const helmResult = await this.childProcessService.exec(`helm get ${name}`);
+        const helmResult = await this.childProcessService.exec('helm', ['get', name]);
 
         return helmResult.stdout.trim() !== `Error: release: "${name}" not found`;
     }
@@ -108,7 +111,7 @@ export class K8sHelmService {
      * @return {Promise<IK8sObject[]>}
      */
     async getHelmObjects(name: string) {
-        const helmResult = await this.childProcessService.exec(`helm get ${name}`);
+        const helmResult = await this.childProcessService.exec('helm', ['get', name]);
 
         if (helmResult.stdout.indexOf('Error') === 0) {
             throw new Error(helmResult.stdout);
@@ -128,7 +131,7 @@ export class K8sHelmService {
      * @returns {Promise<IHelmDeploymentInfo>}
      */
     async getHelmDeployment(name: string): Promise<IHelmDeploymentInfo> {
-        const helmResult = await this.childProcessService.exec(`helm get ${name}`);
+        const helmResult = await this.childProcessService.exec('helm', ['get', name]);
 
         if (helmResult.stdout.indexOf('Error') === 0) {
             throw new Error(helmResult.stdout);
