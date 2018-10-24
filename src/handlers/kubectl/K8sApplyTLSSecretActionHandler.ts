@@ -33,6 +33,7 @@ export class K8sApplyTLSSecretActionHandler extends ActionHandler {
             })
         }).xor(['inline', 'files']);
 
+    /* istanbul ignore next */
     getMetadata(): IActionHandlerMetadata {
         return K8sApplyTLSSecretActionHandler.metadata;
     }

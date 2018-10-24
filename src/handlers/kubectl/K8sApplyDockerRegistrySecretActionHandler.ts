@@ -28,6 +28,7 @@ export class K8sApplyDockerRegistrySecretActionHandler extends ActionHandler {
             email: Joi.string().required()
         });
 
+    /* istanbul ignore next */
     getMetadata(): IActionHandlerMetadata {
         return K8sApplyDockerRegistrySecretActionHandler.metadata;
     }

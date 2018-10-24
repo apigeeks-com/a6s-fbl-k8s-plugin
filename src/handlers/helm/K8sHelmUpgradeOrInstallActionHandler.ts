@@ -21,6 +21,7 @@ export class K8sHelmUpgradeOrInstallActionHandler extends ActionHandler {
         ]
     };
 
+    /* istanbul ignore next */
     getMetadata(): IActionHandlerMetadata {
         return K8sHelmUpgradeOrInstallActionHandler.metadata;
     }

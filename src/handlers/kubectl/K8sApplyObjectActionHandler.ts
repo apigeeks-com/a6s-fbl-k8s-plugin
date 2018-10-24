@@ -17,6 +17,7 @@ export class K8sApplyObjectActionHandler extends ActionHandler {
         ]
     };
 
+    /* istanbul ignore next */
     getMetadata(): IActionHandlerMetadata {
         return K8sApplyObjectActionHandler.metadata;
     }

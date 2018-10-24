@@ -36,8 +36,9 @@ export class K8sApplyGenericSecretActionHandler extends ActionHandler {
                 .min(1)
                 .optional(),
         })
-        .xor(['files', 'inline']);
+        .or(['files', 'inline']);
 
+    /* istanbul ignore next */
     getMetadata(): IActionHandlerMetadata {
         return K8sApplyGenericSecretActionHandler.metadata;
     }

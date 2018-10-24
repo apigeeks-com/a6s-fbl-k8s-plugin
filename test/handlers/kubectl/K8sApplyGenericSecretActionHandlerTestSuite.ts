@@ -58,16 +58,6 @@ class K8sApplyGenericSecretActionHandlerTestSuite {
                 inline: {}
             }, context, snapshot)
         ).to.be.rejected;
-
-        await chai.expect(
-            actionHandler.validate({
-                name: 'test',
-                files: ['test.yml'],
-                inline: {
-                    test: 1
-                }
-            }, context, snapshot)
-        ).to.be.rejected;
     }
 
     @test()
@@ -87,6 +77,14 @@ class K8sApplyGenericSecretActionHandlerTestSuite {
                 test: 1
             }
         }, context, snapshot);
+
+        await actionHandler.validate({
+            name: 'test',
+            files: ['test.yml'],
+            inline: {
+                test: 1
+            }
+        }, context, snapshot)
     }
 
     @test()
