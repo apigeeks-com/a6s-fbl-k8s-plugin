@@ -10,12 +10,12 @@ const packageJson = require('../../../../package.json');
 
 export class K8sApplyTLSSecretActionHandler extends ActionHandler {
     private static metadata = <IActionHandlerMetadata> {
-        id: 'a6s.k8s.kubectl.apply.secret.tls',
+        id: 'a6s.k8s.kubectl.apply.Secret.tls',
         version: packageJson.version,
         aliases: [
-            'k8s.kubectl.apply.secret.tls',
-            'kubectl.apply.secret.tls',
-            'kubectl.secret.tls'
+            'k8s.kubectl.apply.Secret.tls',
+            'kubectl.apply.Secret.tls',
+            'kubectl.Secret.tls'
         ]
     };
 
@@ -59,11 +59,11 @@ export class K8sApplyTLSSecretActionHandler extends ActionHandler {
 
         object.data = {};
         if (options.inline) {
-            object.data['tls.crt'] = options.inline.cert;
-            object.data['tls.key'] = options.inline.key;
+            object.data['tls.crt'] = new Buffer(options.inline.cert).toString('base64');
+            object.data['tls.key'] = new Buffer(options.inline.key).toString('base64');
         } else {
-            object.data['tls.crt'] = await FSUtil.readTextFile(FSUtil.getAbsolutePath(options.cert, snapshot.wd));
-            object.data['tls.key'] = await FSUtil.readTextFile(FSUtil.getAbsolutePath(options.key, snapshot.wd));
+            object.data['tls.crt'] = (await FSUtil.readFile(FSUtil.getAbsolutePath(options.cert, snapshot.wd))).toString('base64');
+            object.data['tls.key'] = (await FSUtil.readFile(FSUtil.getAbsolutePath(options.key, snapshot.wd))).toString('base64');
         }
 
         await Container.get(K8sKubectlService).applyObject(object, context);

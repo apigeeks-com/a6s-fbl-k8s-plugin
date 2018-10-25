@@ -6,8 +6,11 @@ DOCKER_DAEMON_ARGS=-D wrapdocker
 # create k8s cluster
 kind create cluster
 
+sleep 5
+
 # export kube config
 export KUBECONFIG="/root/.kube/kind-config-1"
+kubectl cluster-info
 
 # navigate to project dir
 cd /usr/app

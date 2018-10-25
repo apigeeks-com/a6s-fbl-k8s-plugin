@@ -107,7 +107,10 @@ class K8sApplyGenericSecretActionHandlerTestSuite {
 
         const result = await Container.get(ChildProcessService).exec('kubectl', ['get', 'secret', options.name, '-o', 'json']);
 
-        assert.strictEqual(result.code, 0);
+        if (result.code !== 0) {
+            throw new Error(`code: ${result.code};\nstdout: ${result.stdout};\nstderr: ${result.stderr}`);
+        }
+
         const secret = JSON.parse(result.stdout);
         assert.deepStrictEqual(secret.data, {
             host: new Buffer('foo.bar').toString('base64'),
@@ -137,7 +140,10 @@ class K8sApplyGenericSecretActionHandlerTestSuite {
 
         const result = await Container.get(ChildProcessService).exec('kubectl', ['get', 'secret', options.name, '-o', 'json']);
 
-        assert.strictEqual(result.code, 0);
+        if (result.code !== 0) {
+            throw new Error(`code: ${result.code};\nstdout: ${result.stdout};\nstderr: ${result.stderr}`);
+        }
+
         const secret = JSON.parse(result.stdout);
         assert.deepStrictEqual(secret.data, {
             [basename(tempFile)]: new Buffer('test=true').toString('base64')
@@ -170,7 +176,10 @@ class K8sApplyGenericSecretActionHandlerTestSuite {
 
         const result = await Container.get(ChildProcessService).exec('kubectl', ['get', 'secret', options.name, '-o', 'json']);
 
-        assert.strictEqual(result.code, 0);
+        if (result.code !== 0) {
+            throw new Error(`code: ${result.code};\nstdout: ${result.stdout};\nstderr: ${result.stderr}`);
+        }
+
         const secret = JSON.parse(result.stdout);
         assert.deepStrictEqual(secret.data, {
             [basename(tempFile)]: new Buffer('test=true').toString('base64'),
@@ -201,7 +210,10 @@ class K8sApplyGenericSecretActionHandlerTestSuite {
 
         let result = await Container.get(ChildProcessService).exec('kubectl', ['get', 'secret', options.name, '-o', 'json']);
 
-        assert.strictEqual(result.code, 0);
+        if (result.code !== 0) {
+            throw new Error(`code: ${result.code};\nstdout: ${result.stdout};\nstderr: ${result.stderr}`);
+        }
+
         let secret = JSON.parse(result.stdout);
         assert.deepStrictEqual(secret.data, {
             host: new Buffer('foo.bar').toString('base64'),
@@ -215,7 +227,10 @@ class K8sApplyGenericSecretActionHandlerTestSuite {
 
         result = await Container.get(ChildProcessService).exec('kubectl', ['get', 'secret', options.name, '-o', 'json']);
 
-        assert.strictEqual(result.code, 0);
+        if (result.code !== 0) {
+            throw new Error(`code: ${result.code};\nstdout: ${result.stdout};\nstderr: ${result.stderr}`);
+        }
+
         secret = JSON.parse(result.stdout);
         assert.deepStrictEqual(secret.data, {
             host: new Buffer('foo.bar').toString('base64'),

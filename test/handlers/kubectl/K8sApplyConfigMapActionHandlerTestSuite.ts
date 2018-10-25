@@ -107,7 +107,10 @@ class K8sApplyConfigMapActionHandlerTestSuite {
 
         const result = await Container.get(ChildProcessService).exec('kubectl', ['get', 'configmap', options.name, '-o', 'json']);
 
-        assert.strictEqual(result.code, 0);
+        if (result.code !== 0) {
+            throw new Error(`code: ${result.code};\nstdout: ${result.stdout};\nstderr: ${result.stderr}`);
+        }
+
         const configMap = JSON.parse(result.stdout);
         assert.deepStrictEqual(configMap.data, {
             host: 'foo.bar',
@@ -137,7 +140,10 @@ class K8sApplyConfigMapActionHandlerTestSuite {
 
         const result = await Container.get(ChildProcessService).exec('kubectl', ['get', 'configmap', options.name, '-o', 'json']);
 
-        assert.strictEqual(result.code, 0);
+        if (result.code !== 0) {
+            throw new Error(`code: ${result.code};\nstdout: ${result.stdout};\nstderr: ${result.stderr}`);
+        }
+
         const configMap = JSON.parse(result.stdout);
         assert.deepStrictEqual(configMap.data, {
             [basename(tempFile)]: 'test=true'
@@ -170,7 +176,10 @@ class K8sApplyConfigMapActionHandlerTestSuite {
 
         const result = await Container.get(ChildProcessService).exec('kubectl', ['get', 'configmap', options.name, '-o', 'json']);
 
-        assert.strictEqual(result.code, 0);
+        if (result.code !== 0) {
+            throw new Error(`code: ${result.code};\nstdout: ${result.stdout};\nstderr: ${result.stderr}`);
+        }
+
         const configMap = JSON.parse(result.stdout);
         assert.deepStrictEqual(configMap.data, {
             [basename(tempFile)]: 'test=true',
@@ -201,7 +210,10 @@ class K8sApplyConfigMapActionHandlerTestSuite {
 
         let result = await Container.get(ChildProcessService).exec('kubectl', ['get', 'configmap', options.name, '-o', 'json']);
 
-        assert.strictEqual(result.code, 0);
+        if (result.code !== 0) {
+            throw new Error(`code: ${result.code};\nstdout: ${result.stdout};\nstderr: ${result.stderr}`);
+        }
+
         let configMap = JSON.parse(result.stdout);
         assert.deepStrictEqual(configMap.data, {
             host: 'foo.bar',
@@ -215,7 +227,10 @@ class K8sApplyConfigMapActionHandlerTestSuite {
 
         result = await Container.get(ChildProcessService).exec('kubectl', ['get', 'configmap', options.name, '-o', 'json']);
 
-        assert.strictEqual(result.code, 0);
+        if (result.code !== 0) {
+            throw new Error(`code: ${result.code};\nstdout: ${result.stdout};\nstderr: ${result.stderr}`);
+        }
+
         configMap = JSON.parse(result.stdout);
         assert.deepStrictEqual(configMap.data, {
             host: 'foo.bar',

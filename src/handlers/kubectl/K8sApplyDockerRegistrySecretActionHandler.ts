@@ -14,7 +14,8 @@ export class K8sApplyDockerRegistrySecretActionHandler extends ActionHandler {
         aliases: [
             'k8s.kubectl.apply.Secret.docker-registry',
             'kubectl.apply.Secret.docker-registry',
-            'kubectl.Secret.docker-registry'
+            'kubectl.Secret.docker-registry',
+            'kubectl.Secret.docker'
         ]
     };
 

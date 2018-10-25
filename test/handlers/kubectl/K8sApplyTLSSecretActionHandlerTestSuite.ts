@@ -1,19 +1,22 @@
 import {suite, test} from 'mocha-typescript';
 
-import {K8sApplyDockerRegistrySecretActionHandler} from '../../../src/handlers/kubectl';
+import {K8sApplyTLSSecretActionHandler} from '../../../src/handlers/kubectl';
 import {ContextUtil} from 'fbl/dist/src/utils';
 import {ActionSnapshot} from 'fbl/dist/src/models';
 import * as assert from 'assert';
 import {TempPathsRegistry} from 'fbl/dist/src/services';
 import {Container} from 'typedi';
 import {ChildProcessService} from '../../../src/services';
+import {promisify} from 'util';
+import {readFile} from 'fs';
+import {join} from 'path';
 
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
 
 @suite()
-class K8sApplyDockerRegistrySecretActionHandlerTestSuite {
+class K8sApplyTLSSecretActionHandlerTestSuite {
     async after(): Promise<void> {
         await Container.get(TempPathsRegistry).cleanup();
         Container.reset();
@@ -21,7 +24,7 @@ class K8sApplyDockerRegistrySecretActionHandlerTestSuite {
 
     @test()
     async failValidation() {
-        const actionHandler = new K8sApplyDockerRegistrySecretActionHandler();
+        const actionHandler = new K8sApplyTLSSecretActionHandler();
         const context = ContextUtil.generateEmptyContext();
         const snapshot = new ActionSnapshot('.', {}, '', 0);
 
@@ -52,41 +55,57 @@ class K8sApplyDockerRegistrySecretActionHandlerTestSuite {
         await chai.expect(
             actionHandler.validate({
                 name: 'test',
-                server: 'test',
-                username: 'test',
-                password: 'test'
+                inline: {
+                    cert: 'inline:cert',
+                    key: 'inline:key'
+                },
+                files: {
+                    cert: 'cert.crt',
+                    key: 'key.key'
+                }
             }, context, snapshot)
         ).to.be.rejected;
     }
 
     @test()
     async passValidation() {
-        const actionHandler = new K8sApplyDockerRegistrySecretActionHandler();
+        const actionHandler = new K8sApplyTLSSecretActionHandler();
         const context = ContextUtil.generateEmptyContext();
         const snapshot = new ActionSnapshot('.', {}, '', 0);
 
         await actionHandler.validate({
             name: 'test',
-            server: 'test',
-            username: 'test',
-            password: 'test',
-            email: 'foo@bar.com'
+            inline: {
+                cert: 'inline:cert',
+                key: 'inline:key'
+            }
         }, context, snapshot);
 
+        actionHandler.validate({
+            name: 'test',
+            files: {
+                cert: 'cert.crt',
+                key: 'key.key'
+            }
+        }, context, snapshot);
     }
 
     @test()
-    async registerDockerSecretWithoutNamespace(): Promise<void> {
-        const actionHandler = new K8sApplyDockerRegistrySecretActionHandler();
+    async registerTLSSecretWithInlineParams(): Promise<void> {
+        const actionHandler = new K8sApplyTLSSecretActionHandler();
         const context = ContextUtil.generateEmptyContext();
         const snapshot = new ActionSnapshot('.', {}, '', 0);
 
+        const assetsDir = join(__dirname, '../../../../test/assets');
+        const cert = await promisify(readFile)(join(assetsDir, 'cert.crt'), 'utf8');
+        const key = await promisify(readFile)(join(assetsDir, 'cert.key'), 'utf8');
+
         const options = {
-            name: 'secret-docker-test-with-ns',
-            server: 'test',
-            username: 'test',
-            password: 'test',
-            email: 'foo@bar.com'
+            name: 'secret-tls-test-inline',
+            inline: {
+                cert: cert,
+                key: key
+            }
         };
 
         await actionHandler.validate(options, context, snapshot);
@@ -100,16 +119,8 @@ class K8sApplyDockerRegistrySecretActionHandlerTestSuite {
 
         const configMap = JSON.parse(result.stdout);
         assert.deepStrictEqual(configMap.data, {
-            '.dockerconfigjson': new Buffer(JSON.stringify({
-                auths:{
-                    test:{
-                        username: "test",
-                        password: "test",
-                        email: "foo@bar.com",
-                        auth: new Buffer('test:test').toString('base64')
-                    }
-                }
-            })).toString('base64')
+            'tls.crt': new Buffer(cert).toString('base64'),
+            'tls.key': new Buffer(key).toString('base64')
         });
 
         assert.strictEqual(context.entities.registered.length, 1);
@@ -117,18 +128,22 @@ class K8sApplyDockerRegistrySecretActionHandlerTestSuite {
     }
 
     @test()
-    async registerDockerSecretWithNamespace(): Promise<void> {
-        const actionHandler = new K8sApplyDockerRegistrySecretActionHandler();
+    async registerTLSSecretWithFilesParams(): Promise<void> {
+        const actionHandler = new K8sApplyTLSSecretActionHandler();
         const context = ContextUtil.generateEmptyContext();
         const snapshot = new ActionSnapshot('.', {}, '', 0);
 
+        const assetsDir = join(__dirname, '../../../../test/assets');
+        const cert = join(assetsDir, 'cert.crt');
+        const key = join(assetsDir, 'cert.key');
+
         const options = {
-            name: 'secret-docker-test-without-ns',
+            name: 'secret-tls-test-inline',
             namespace: 'default',
-            server: '127.0.0.1',
-            username: 'foo',
-            password: 'bar',
-            email: 'foo@bar.com'
+            files: {
+                cert: cert,
+                key: key
+            }
         };
 
         await actionHandler.validate(options, context, snapshot);
@@ -140,18 +155,13 @@ class K8sApplyDockerRegistrySecretActionHandlerTestSuite {
             throw new Error(`code: ${result.code};\nstdout: ${result.stdout};\nstderr: ${result.stderr}`);
         }
 
+        const crtContent = await promisify(readFile)(cert, 'utf8');
+        const keyContent = await promisify(readFile)(key, 'utf8');
+
         const configMap = JSON.parse(result.stdout);
         assert.deepStrictEqual(configMap.data, {
-            '.dockerconfigjson': new Buffer(JSON.stringify({
-                auths:{
-                    test:{
-                        username: "test",
-                        password: "test",
-                        email: "foo@bar.com",
-                        auth: new Buffer('test:test').toString('base64')
-                    }
-                }
-            })).toString('base64')
+            'tls.crt': new Buffer(crtContent).toString('base64'),
+            'tls.key': new Buffer(keyContent).toString('base64')
         });
 
         assert.strictEqual(context.entities.registered.length, 1);
