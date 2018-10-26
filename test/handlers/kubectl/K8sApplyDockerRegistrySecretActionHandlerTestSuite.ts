@@ -83,9 +83,9 @@ class K8sApplyDockerRegistrySecretActionHandlerTestSuite {
 
         const options = {
             name: 'secret-docker-test-with-ns',
-            server: 'test',
-            username: 'test',
-            password: 'test',
+            server: '127.0.0.1',
+            username: 'foo',
+            password: 'bar',
             email: 'foo@bar.com'
         };
 
@@ -102,11 +102,11 @@ class K8sApplyDockerRegistrySecretActionHandlerTestSuite {
         assert.deepStrictEqual(configMap.data, {
             '.dockerconfigjson': new Buffer(JSON.stringify({
                 auths:{
-                    test:{
-                        username: "test",
-                        password: "test",
+                    '127.0.0.1':{
+                        username: "foo",
+                        password: "bar",
                         email: "foo@bar.com",
-                        auth: new Buffer('test:test').toString('base64')
+                        auth: new Buffer('foo:bar').toString('base64')
                     }
                 }
             })).toString('base64')
@@ -144,11 +144,11 @@ class K8sApplyDockerRegistrySecretActionHandlerTestSuite {
         assert.deepStrictEqual(configMap.data, {
             '.dockerconfigjson': new Buffer(JSON.stringify({
                 auths:{
-                    test:{
-                        username: "test",
-                        password: "test",
-                        email: "foo@bar.com",
-                        auth: new Buffer('test:test').toString('base64')
+                    '127.0.0.1':{
+                        username: 'foo',
+                        password: 'bar',
+                        email: 'foo@bar.com',
+                        auth: new Buffer('foo:bar').toString('base64')
                     }
                 }
             })).toString('base64')

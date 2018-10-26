@@ -138,7 +138,7 @@ class K8sApplyTLSSecretActionHandlerTestSuite {
         const key = join(assetsDir, 'cert.key');
 
         const options = {
-            name: 'secret-tls-test-inline',
+            name: 'secret-tls-test-files',
             namespace: 'default',
             files: {
                 cert: cert,

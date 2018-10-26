@@ -1,19 +1,63 @@
 #!/bin/bash
-
-# start docker
+echo "-> starting docker daemon..."
 DOCKER_DAEMON_ARGS=-D wrapdocker
 
-# create k8s cluster
+exit_code=$?
+if [[ $exit_code != 0 ]]; then
+    echo "<- failed to start docker daemon"
+    exit $exit_code
+fi
+
+echo "-> cleanup docker images..."
+docker kill $(docker ps -q)
+docker rm $(docker ps -aq)
+
+echo "-> creating kind cluster..."
 kind create cluster
 
-sleep 5
+exit_code=$?
+if [[ $exit_code != 0 ]]; then
+    echo "<- failed to create kind cluster"
+    exit $exit_code
+fi
 
 # export kube config
-export KUBECONFIG="/root/.kube/kind-config-1"
-kubectl cluster-info
+export KUBECONFIG="$(kind get kubeconfig-path)"
+
+echo "-> init helm..."
+kubectl create serviceaccount --namespace kube-system tiller
+kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
+kubectl patch deploy --namespace kube-system tiller-deploy -p '{"spec":{"template":{"spec":{"serviceAccount":"tiller"}}}}'
+helm init --service-account tiller --upgrade
+
+exit_code=$?
+if [[ $exit_code != 0 ]]; then
+    echo "<- failed to init helm"
+    exit $exit_code
+fi
+
+echo "-> sleep for 60 seconds to give enough time for tiller to boot..."
+sleep 60
+
+helm version
+exit_code=$?
+if [[ $exit_code != 0 ]]; then
+    echo "<- tiller is not ready yet"
+    exit $exit_code
+fi
 
 # navigate to project dir
 cd /usr/app
 
 # run tests
-yarn build && yarn test
+echo "-> building plugin..."
+yarn build
+
+echo "-> running tests..."
+yarn test
+exit_code=$?
+
+echo "-> removing kind cluster..."
+kind delete cluster
+
+exit $exit_code

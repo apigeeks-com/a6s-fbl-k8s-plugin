@@ -5,6 +5,8 @@ import {Container} from 'typedi';
 import {K8sKubectlService} from '../../services';
 import {IK8sObject, IK8sObject_JOI_SCHEMA} from '../../interfaces';
 import {FSUtil} from 'fbl/dist/src/utils';
+import {promisify} from 'util';
+import {exists} from 'fs';
 
 const packageJson = require('../../../../package.json');
 
@@ -42,6 +44,24 @@ export class K8sApplyTLSSecretActionHandler extends ActionHandler {
         return K8sApplyTLSSecretActionHandler.schema;
     }
 
+    async validate(options: any, context: IContext, snapshot: ActionSnapshot): Promise<void> {
+        await super.validate(options, context, snapshot);
+
+        if (options.files) {
+            const existsAsync = promisify(exists);
+
+            const certExists = await existsAsync(FSUtil.getAbsolutePath(options.files.cert, snapshot.wd));
+            if (!certExists) {
+                throw new Error('Unable to locate cert file for given path');
+            }
+
+            const keyExists = await existsAsync(FSUtil.getAbsolutePath(options.files.key, snapshot.wd));
+            if (!keyExists) {
+                throw new Error('Unable to locate key file for given path');
+            }
+        }
+    }
+
     async execute(options: any, context: IContext, snapshot: ActionSnapshot): Promise<void> {
         const object: IK8sObject = {
             apiVersion: 'v1',
@@ -62,8 +82,8 @@ export class K8sApplyTLSSecretActionHandler extends ActionHandler {
             object.data['tls.crt'] = new Buffer(options.inline.cert).toString('base64');
             object.data['tls.key'] = new Buffer(options.inline.key).toString('base64');
         } else {
-            object.data['tls.crt'] = (await FSUtil.readFile(FSUtil.getAbsolutePath(options.cert, snapshot.wd))).toString('base64');
-            object.data['tls.key'] = (await FSUtil.readFile(FSUtil.getAbsolutePath(options.key, snapshot.wd))).toString('base64');
+            object.data['tls.crt'] = (await FSUtil.readFile(FSUtil.getAbsolutePath(options.files.cert, snapshot.wd))).toString('base64');
+            object.data['tls.key'] = (await FSUtil.readFile(FSUtil.getAbsolutePath(options.files.key, snapshot.wd))).toString('base64');
         }
 
         await Container.get(K8sKubectlService).applyObject(object, context);

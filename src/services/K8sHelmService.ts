@@ -3,9 +3,10 @@ import {Inject, Service} from 'typedi';
 import {ChildProcessService} from './ChildProcessService';
 import {TempPathsRegistry} from 'fbl/dist/src/services';
 import {promisify} from 'util';
-import {writeFile} from 'fs';
+import {exists, writeFile} from 'fs';
 import {dump} from 'js-yaml';
 import {IHelmChart, IHelmDeploymentInfo} from '../interfaces';
+import {FSUtil} from 'fbl/dist/src/utils';
 
 @Service()
 export class K8sHelmService {
@@ -35,9 +36,10 @@ export class K8sHelmService {
     /**
      * Update or install helm chart
      * @param {IHelmChart} config
+     * @param {string} wd working directory
      * @return {Promise<void>}
      */
-    async updateOrInstall(config: IHelmChart): Promise<void> {
+    async updateOrInstall(config: IHelmChart, wd: string): Promise<void> {
         const args = [
             'upgrade', '--install'
         ];
@@ -58,19 +60,30 @@ export class K8sHelmService {
             args.push('--wait');
         }
 
-        // tslint:disable-next-line
-        config.variable_files && config.variable_files.forEach(f => {
-            args.push('-f', f);
-        });
-
         if (config.variables) {
-            const tmpFile = await this.tempPathsRegistry.createTempFile(false, '.yml');
-            await promisify(writeFile)(tmpFile, dump(config.variables), 'utf8');
-            args.push('-f', tmpFile);
+            if (config.variables.files) {
+                config.variables.files.forEach(f => {
+                    args.push('-f', FSUtil.getAbsolutePath(f, wd));
+                })
+            }
+
+            if (config.variables.inline) {
+                const tmpFile = await this.tempPathsRegistry.createTempFile(false, '.yml');
+                await promisify(writeFile)(tmpFile, dump(config.variables.inline), 'utf8');
+                args.push('-f', tmpFile);
+            }
         }
 
         args.push(config.name);
-        args.push(config.chart);
+
+        const localPath = FSUtil.getAbsolutePath(config.chart, wd);
+        const existsLocally = await promisify(exists)(localPath);
+
+        if (existsLocally) {
+            args.push(localPath);
+        } else {
+            args.push(config.chart);
+        }
 
         const result = await this.childProcessService.exec('helm', args);
 
