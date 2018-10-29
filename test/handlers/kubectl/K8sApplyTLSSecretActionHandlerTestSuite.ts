@@ -6,7 +6,7 @@ import {ActionSnapshot} from 'fbl/dist/src/models';
 import * as assert from 'assert';
 import {TempPathsRegistry} from 'fbl/dist/src/services';
 import {Container} from 'typedi';
-import {ChildProcessService} from '../../../src/services';
+import {K8sKubectlService} from '../../../src/services';
 import {promisify} from 'util';
 import {readFile} from 'fs';
 import {join} from 'path';
@@ -111,7 +111,7 @@ class K8sApplyTLSSecretActionHandlerTestSuite {
         await actionHandler.validate(options, context, snapshot);
         await actionHandler.execute(options, context, snapshot);
 
-        const result = await Container.get(ChildProcessService).exec('kubectl', ['get', 'secret', options.name, '-o', 'json']);
+        const result = await Container.get(K8sKubectlService).execKubectlCommand(['get', 'secret', options.name, '-o', 'json']);
 
         if (result.code !== 0) {
             throw new Error(`code: ${result.code};\nstdout: ${result.stdout};\nstderr: ${result.stderr}`);
@@ -149,7 +149,7 @@ class K8sApplyTLSSecretActionHandlerTestSuite {
         await actionHandler.validate(options, context, snapshot);
         await actionHandler.execute(options, context, snapshot);
 
-        const result = await Container.get(ChildProcessService).exec('kubectl', ['get', 'secret', options.name, '-o', 'json']);
+        const result = await Container.get(K8sKubectlService).execKubectlCommand(['get', 'secret', options.name, '-o', 'json']);
 
         if (result.code !== 0) {
             throw new Error(`code: ${result.code};\nstdout: ${result.stdout};\nstderr: ${result.stderr}`);

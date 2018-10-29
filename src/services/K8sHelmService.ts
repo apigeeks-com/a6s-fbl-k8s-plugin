@@ -1,7 +1,6 @@
 import * as yaml from 'js-yaml';
 import {Inject, Service} from 'typedi';
-import {ChildProcessService} from './ChildProcessService';
-import {TempPathsRegistry} from 'fbl/dist/src/services';
+import {ChildProcessService, TempPathsRegistry} from 'fbl/dist/src/services';
 import {promisify} from 'util';
 import {exists, writeFile} from 'fs';
 import {dump} from 'js-yaml';
@@ -17,19 +16,50 @@ export class K8sHelmService {
     private tempPathsRegistry: TempPathsRegistry;
 
     /**
+     * Execute "helm" command
+     * @param {string[]} args
+     * @param {string} wd
+     * @return {Promise<{code: number; stdout: string; stderr: string}>}
+     */
+    async execHelmCommand(args: string[], wd?: string): Promise<{code: number, stdout: string, stderr: string}> {
+        const stdout: string[] = [];
+        const stderr: string[] = [];
+
+        const code = await this.childProcessService.exec(
+            'helm',
+            args,
+            wd || '.',
+            {
+                stdout: (chunk: any) => {
+                    stdout.push(chunk.toString().trim());
+                },
+                stderr: (chunk: any) => {
+                    stderr.push(chunk.toString().trim());
+                }
+            }
+        );
+
+        return {
+            code,
+            stdout: stdout.join('\n'),
+            stderr: stderr.join('\n')
+        };
+    }
+
+    /**
      * Remove helm chart
      * @param {string} name
      * @return {Promise<void>}
      */
     async remove(name: string): Promise<void> {
-        const result = await this.childProcessService.exec('helm', [
+        const result = await this.execHelmCommand([
             'del',
             '--purge',
             name
         ]);
 
         if (result.code !== 0) {
-            throw new Error(result.stderr);
+            throw new Error(`Unable to delete helm, command returned non-zero exit code. Code: ${result.code}\nstderr: ${result.stderr}\nstdout: ${result.stdout}`);
         }
     }
 
@@ -64,7 +94,7 @@ export class K8sHelmService {
             if (config.variables.files) {
                 config.variables.files.forEach(f => {
                     args.push('-f', FSUtil.getAbsolutePath(f, wd));
-                })
+                });
             }
 
             if (config.variables.inline) {
@@ -85,10 +115,10 @@ export class K8sHelmService {
             args.push(config.chart);
         }
 
-        const result = await this.childProcessService.exec('helm', args);
+        const result = await this.execHelmCommand(args);
 
         if (result.code !== 0) {
-            throw new Error(result.stderr);
+            throw new Error(`Unable to update or install helm chart, command returned non-zero exit code. Code: ${result.code}\nstderr: ${result.stderr}\nstdout: ${result.stdout}`);
         }
     }
 
@@ -97,7 +127,7 @@ export class K8sHelmService {
      * @returns {Promise<string[]>}
      */
     async listInstalledHelms(): Promise<string[]> {
-        const result = await this.childProcessService.exec('helm', ['list', '-q']);
+        const result = await this.execHelmCommand(['list', '-q']);
 
         return result.stdout
             .split('\n')
@@ -112,7 +142,7 @@ export class K8sHelmService {
      * @returns {Promise<boolean>}
      */
     async isDeploymentExists(name: string): Promise<boolean> {
-        const helmResult = await this.childProcessService.exec('helm', ['get', name]);
+        const helmResult = await this.execHelmCommand(['get', name]);
 
         return helmResult.stdout.trim() !== `Error: release: "${name}" not found`;
     }
@@ -124,7 +154,7 @@ export class K8sHelmService {
      * @return {Promise<IK8sObject[]>}
      */
     async getHelmObjects(name: string) {
-        const helmResult = await this.childProcessService.exec('helm', ['get', name]);
+        const helmResult = await this.execHelmCommand(['get', name]);
 
         if (helmResult.stdout.indexOf('Error') === 0) {
             throw new Error(helmResult.stdout);
@@ -144,7 +174,7 @@ export class K8sHelmService {
      * @returns {Promise<IHelmDeploymentInfo>}
      */
     async getHelmDeployment(name: string): Promise<IHelmDeploymentInfo> {
-        const helmResult = await this.childProcessService.exec('helm', ['get', name]);
+        const helmResult = await this.execHelmCommand(['get', name]);
 
         if (helmResult.stdout.indexOf('Error') === 0) {
             throw new Error(helmResult.stdout);

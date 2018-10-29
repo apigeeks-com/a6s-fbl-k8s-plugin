@@ -1,8 +1,7 @@
 import {IK8sObject} from '../interfaces';
 import {Inject, Service} from 'typedi';
-import {ChildProcessService} from './ChildProcessService';
 import {IContext, IContextEntity} from 'fbl/dist/src/interfaces';
-import {TempPathsRegistry} from 'fbl/dist/src/services';
+import {ChildProcessService, TempPathsRegistry} from 'fbl/dist/src/services';
 import {promisify} from 'util';
 import {writeFile} from 'fs';
 import {dump} from 'js-yaml';
@@ -17,12 +16,43 @@ export class K8sKubectlService {
     private tempPathsRegistry: TempPathsRegistry;
 
     /**
+     * Execute "helm" command
+     * @param {string[]} args
+     * @param {string} wd
+     * @return {Promise<{code: number; stdout: string; stderr: string}>}
+     */
+    async execKubectlCommand(args: string[], wd?: string): Promise<{code: number, stdout: string, stderr: string}> {
+        const stdout: string[] = [];
+        const stderr: string[] = [];
+
+        const code = await this.childProcessService.exec(
+            'kubectl',
+            args,
+            wd || '.',
+            {
+                stdout: (chunk: any) => {
+                    stdout.push(chunk.toString().trim());
+                },
+                stderr: (chunk: any) => {
+                    stderr.push(chunk.toString().trim());
+                }
+            }
+        );
+
+        return {
+            code,
+            stdout: stdout.join('\n'),
+            stderr: stderr.join('\n')
+        };
+    }
+
+    /**
      * Delete K8s Object
      * @param {IK8sObject} k8sObject
      * @returns {Promise<void>}
      */
     async deleteObject(k8sObject: IK8sObject): Promise<void> {
-        const result = await this.childProcessService.exec('kubectl',
+        const result = await this.execKubectlCommand(
             [
                 'delete',
                 k8sObject.kind,
@@ -45,7 +75,7 @@ export class K8sKubectlService {
         const tmpFile = await this.tempPathsRegistry.createTempFile(false, '.yml');
         await promisify(writeFile)(tmpFile, dump(k8sObject), 'utf8');
 
-        const result = await this.childProcessService.exec('kubectl', [
+        const result = await this.execKubectlCommand([
             'create',
             '-f', tmpFile
         ]);
@@ -71,7 +101,7 @@ export class K8sKubectlService {
         const tmpFile = await this.tempPathsRegistry.createTempFile(false, '.yml');
         await promisify(writeFile)(tmpFile, dump(k8sObject), 'utf8');
 
-        const result = await this.childProcessService.exec('kubectl', [
+        const result = await this.execKubectlCommand([
             'apply',
             '-f', tmpFile
         ]);
@@ -106,7 +136,7 @@ export class K8sKubectlService {
      * @returns {Promise<any>}
      */
     async getObject(k8sObject: IK8sObject): Promise<any> {
-        const result = await this.childProcessService.exec('kubectl', [
+        const result = await this.execKubectlCommand([
             'get',
             k8sObject.kind,
             k8sObject.metadata.name,
@@ -140,7 +170,7 @@ export class K8sKubectlService {
 
         args.push('-o name');
 
-        const result = await this.childProcessService.exec('kubectl', args);
+        const result = await this.execKubectlCommand(args);
 
         return result.stdout
             .split('\n')

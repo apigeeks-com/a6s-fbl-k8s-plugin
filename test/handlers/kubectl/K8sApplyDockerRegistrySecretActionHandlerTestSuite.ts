@@ -6,7 +6,7 @@ import {ActionSnapshot} from 'fbl/dist/src/models';
 import * as assert from 'assert';
 import {TempPathsRegistry} from 'fbl/dist/src/services';
 import {Container} from 'typedi';
-import {ChildProcessService} from '../../../src/services';
+import {K8sKubectlService} from '../../../src/services';
 
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
@@ -92,7 +92,8 @@ class K8sApplyDockerRegistrySecretActionHandlerTestSuite {
         await actionHandler.validate(options, context, snapshot);
         await actionHandler.execute(options, context, snapshot);
 
-        const result = await Container.get(ChildProcessService).exec('kubectl', ['get', 'secret', options.name, '-o', 'json']);
+        const result = await Container.get(K8sKubectlService)
+            .execKubectlCommand(['get', 'secret', options.name, '-o', 'json']);
 
         if (result.code !== 0) {
             throw new Error(`code: ${result.code};\nstdout: ${result.stdout};\nstderr: ${result.stderr}`);
@@ -101,11 +102,11 @@ class K8sApplyDockerRegistrySecretActionHandlerTestSuite {
         const configMap = JSON.parse(result.stdout);
         assert.deepStrictEqual(configMap.data, {
             '.dockerconfigjson': new Buffer(JSON.stringify({
-                auths:{
-                    '127.0.0.1':{
-                        username: "foo",
-                        password: "bar",
-                        email: "foo@bar.com",
+                auths: {
+                    '127.0.0.1': {
+                        username: 'foo',
+                        password: 'bar',
+                        email: 'foo@bar.com',
                         auth: new Buffer('foo:bar').toString('base64')
                     }
                 }
@@ -134,7 +135,8 @@ class K8sApplyDockerRegistrySecretActionHandlerTestSuite {
         await actionHandler.validate(options, context, snapshot);
         await actionHandler.execute(options, context, snapshot);
 
-        const result = await Container.get(ChildProcessService).exec('kubectl', ['get', 'secret', options.name, '-o', 'json']);
+        const result = await Container.get(K8sKubectlService)
+            .execKubectlCommand(['get', 'secret', options.name, '-o', 'json']);
 
         if (result.code !== 0) {
             throw new Error(`code: ${result.code};\nstdout: ${result.stdout};\nstderr: ${result.stderr}`);
@@ -143,8 +145,8 @@ class K8sApplyDockerRegistrySecretActionHandlerTestSuite {
         const configMap = JSON.parse(result.stdout);
         assert.deepStrictEqual(configMap.data, {
             '.dockerconfigjson': new Buffer(JSON.stringify({
-                auths:{
-                    '127.0.0.1':{
+                auths: {
+                    '127.0.0.1': {
                         username: 'foo',
                         password: 'bar',
                         email: 'foo@bar.com',

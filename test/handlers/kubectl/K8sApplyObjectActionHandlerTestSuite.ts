@@ -6,11 +6,7 @@ import {ActionSnapshot} from 'fbl/dist/src/models';
 import * as assert from 'assert';
 import {TempPathsRegistry} from 'fbl/dist/src/services';
 import {Container} from 'typedi';
-import {ChildProcessService} from '../../../src/services';
-import {promisify} from 'util';
-import {readFile} from 'fs';
-import {join} from 'path';
-import * as Joi from 'joi';
+import {K8sKubectlService} from '../../../src/services';
 
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
@@ -99,8 +95,8 @@ class K8sApplyObjectActionHandlerTestSuite {
         await actionHandler.validate(obj, context, snapshot);
         await actionHandler.execute(obj, context, snapshot);
 
-        const result = await Container.get(ChildProcessService)
-            .exec('kubectl', ['get', obj.kind, obj.metadata.name, '-o', 'json']);
+        const result = await Container.get(K8sKubectlService)
+            .execKubectlCommand(['get', obj.kind, obj.metadata.name, '-o', 'json']);
 
         if (result.code !== 0) {
             throw new Error(`code: ${result.code};\nstdout: ${result.stdout};\nstderr: ${result.stderr}`);

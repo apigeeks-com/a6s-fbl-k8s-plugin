@@ -6,9 +6,8 @@ import {ActionSnapshot} from 'fbl/dist/src/models';
 import * as assert from 'assert';
 import {TempPathsRegistry} from 'fbl/dist/src/services';
 import {Container} from 'typedi';
-import {ChildProcessService} from '../../../src/services';
-import * as Joi from 'joi';
 import {join} from 'path';
+import {K8sHelmService} from '../../../src/services/K8sHelmService';
 
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
@@ -36,15 +35,6 @@ class K8sHelmUpgradeOrInstallActionHandlerTestSuite {
                 name: 'test'
             }, context, snapshot)
         ).to.be.rejected;
-
-        // name: Joi.string(),
-        //     namespace: Joi.string(),
-        //     chart: Joi.string().required(),
-        //     version: Joi.string(),
-        //     variables: Joi.any(),
-        //     variable_files: Joi.array().items(Joi.string()),
-        //     wait: Joi.boolean(),
-        //     timeout: Joi.number().integer().min(0).max(60 * 60) // 1h deployment limit
     }
 
     @test()
@@ -74,7 +64,8 @@ class K8sHelmUpgradeOrInstallActionHandlerTestSuite {
         await actionHandler.validate(options, context, snapshot);
         await actionHandler.execute(options, context, snapshot);
 
-        const result = await Container.get(ChildProcessService).exec('helm', ['list', '-q']);
+        const result = await Container.get(K8sHelmService)
+            .execHelmCommand(['list', '-q']);
 
         if (result.code !== 0) {
             throw new Error(`code: ${result.code};\nstdout: ${result.stdout};\nstderr: ${result.stderr}`);
