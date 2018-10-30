@@ -1,7 +1,7 @@
 {
   "name": "a6s-fbl-k8s-plugin",
   "version": "0.0.1",
-  "description": "",
+  "description": "fbl wrapper plugin for helm and kubectl cli utilities",
   "main": "dist/index.js",
   "scripts": {
     "tsc": "tsc",
@@ -68,5 +68,15 @@
     "k8s",
     "a6s",
     "kubernetes"
-  ]
+  ],
+  "contributors": [
+    {
+      "name": "Vladyslav Tkachenko",
+      "email": "vlad@fireblink.com"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/apigeeks-com/a6s-fbl-k8s-plugin.git"
+  }
 }
