@@ -81,11 +81,15 @@ class K8sApplyTLSSecretActionHandlerTestSuite {
             }
         }, context, snapshot);
 
+        const tempPathsRegistry = Container.get(TempPathsRegistry);
+        const cert = await tempPathsRegistry.createTempFile();
+        const key = await tempPathsRegistry.createTempFile();
+
         await actionHandler.validate({
             name: 'test',
             files: {
-                cert: 'cert.crt',
-                key: 'key.key'
+                cert: cert,
+                key: key
             }
         }, context, snapshot);
     }

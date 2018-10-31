@@ -186,3 +186,26 @@ kubectl.apply:
  # all other fields are optional for the plugin, but may be required by K8s itself
  # please reference object related documentation for what fields should be provided
 ```
+
+## Action Handler: Delete K8s Object 
+
+**ID:** a6s.k8s.kubectl.delete
+
+**Aliases:** 
+ - k8s.kubectl.delete
+ - kubectl.delete
+ 
+**Example:**
+
+```yaml
+kubectl.delete:
+ # object type
+ kind: ObjectKind
+ metadata: 
+   # object name
+   name: test
+   # [optional] k8s namespace
+   namespace: default
+   
+# Note any additional fields are allowed, but will be ignored
+```

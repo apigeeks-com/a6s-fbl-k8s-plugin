@@ -20,13 +20,11 @@ const IK8sObject_JOI_SCHEMA = Joi.object({
             namespace: Joi.string()
         })
         .options({
-            abortEarly: true,
-            allowUnknown: true,
+            allowUnknown: true
         })
         .required(),
 }).options({
-    abortEarly: true,
-    allowUnknown: true,
+    allowUnknown: true
 });
 
 export {IK8sObject, IK8sObject_JOI_SCHEMA};

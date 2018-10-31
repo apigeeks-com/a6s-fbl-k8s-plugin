@@ -47,18 +47,22 @@ export class K8sKubectlService {
     }
 
     /**
-     * Delete K8s Object
+     * Delete K8s object
      * @param {IK8sObject} k8sObject
-     * @returns {Promise<void>}
+     * @return {Promise<void>}
      */
     async deleteObject(k8sObject: IK8sObject): Promise<void> {
-        const result = await this.execKubectlCommand(
-            [
-                'delete',
-                k8sObject.kind,
-                k8sObject.metadata.name
-            ]
-        );
+        const args = [
+            'delete',
+            k8sObject.kind,
+            k8sObject.metadata.name
+        ];
+
+        if (k8sObject.metadata.namespace) {
+            args.push('-n', k8sObject.metadata.namespace);
+        }
+
+        const result = await this.execKubectlCommand(args);
 
         if (result.code !== 0) {
             throw new Error('Unexpected error occurred ' + JSON.stringify(result));

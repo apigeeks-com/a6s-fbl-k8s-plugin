@@ -39,7 +39,8 @@ module.exports = <IPlugin> {
       new K8sApplyDockerRegistrySecretActionHandler(),
       new K8sApplyGenericSecretActionHandler(),
       new K8sApplyObjectActionHandler(),
-      new K8sApplyTLSSecretActionHandler()
+      new K8sApplyTLSSecretActionHandler(),
+      new K8sHelmDeleteActionHandler()
   ],
 
   templateUtils: []

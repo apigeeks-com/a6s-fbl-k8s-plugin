@@ -2,7 +2,6 @@ import {ActionHandler, ActionSnapshot} from 'fbl/dist/src/models';
 import * as Joi from 'joi';
 import {IContext, IActionHandlerMetadata} from 'fbl/dist/src/interfaces';
 import {Container} from 'typedi';
-import {HelmChart_JOI_SCHEMA} from '../../interfaces';
 import {K8sHelmService} from '../../services/K8sHelmService';
 
 const packageJson = require('../../../../package.json');
@@ -19,7 +18,7 @@ export class K8sHelmDeleteActionHandler extends ActionHandler {
 
     private static schema = Joi.object({
        name: Joi.string().min(1).required()
-    });
+    }).required();
 
     /* istanbul ignore next */
     getMetadata(): IActionHandlerMetadata {
