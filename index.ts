@@ -4,9 +4,14 @@ import {
     K8sApplyDockerRegistrySecretActionHandler,
     K8sApplyGenericSecretActionHandler,
     K8sApplyObjectActionHandler,
-    K8sApplyTLSSecretActionHandler
+    K8sApplyTLSSecretActionHandler,
+    K8sDeleteObjectActionHandler
 } from "./src/handlers";
-import {K8sHelmDeleteActionHandler, K8sHelmUpgradeOrInstallActionHandler} from './src/handlers/helm';
+
+import {
+    K8sHelmDeleteActionHandler,
+    K8sHelmUpgradeOrInstallActionHandler
+} from './src/handlers/helm';
 
 const packageJson = require('../package.json');
 
@@ -40,7 +45,7 @@ module.exports = <IPlugin> {
       new K8sApplyGenericSecretActionHandler(),
       new K8sApplyObjectActionHandler(),
       new K8sApplyTLSSecretActionHandler(),
-      new K8sHelmDeleteActionHandler()
+      new K8sDeleteObjectActionHandler()
   ],
 
   templateUtils: []
