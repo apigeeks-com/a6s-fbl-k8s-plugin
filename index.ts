@@ -6,7 +6,7 @@ import {
     K8sApplyObjectActionHandler,
     K8sApplyTLSSecretActionHandler
 } from "./src/handlers";
-import {K8sHelmUpgradeOrInstallActionHandler} from './src/handlers/helm';
+import {K8sHelmDeleteActionHandler, K8sHelmUpgradeOrInstallActionHandler} from './src/handlers/helm';
 
 const packageJson = require('../package.json');
 
@@ -31,6 +31,7 @@ module.exports = <IPlugin> {
 
   actionHandlers: [
       // helm
+      new K8sHelmDeleteActionHandler(),
       new K8sHelmUpgradeOrInstallActionHandler(),
 
       // kubectl

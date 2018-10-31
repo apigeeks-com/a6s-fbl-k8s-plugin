@@ -15,13 +15,13 @@ Allows to use common helm commands inside fbl flow.
 ```yaml
 helm.install:
   # chart name or relative path
-  chart: Joi.string().required(),
+  chart: stable/jenkins
   # [optional] release name (if not provided - helm will give a random one, it is highly recommended to provide own one)
-  name: Joi.string(),
+  name: jenkins
   # [optional] k8s namespace to use
-  namespace: Joi.string(),
+  namespace: default
   # [optional] chart version
-  version: Joi.string(),
+  version: 1.0.0
   # [optional] chart variables      
   variables:
     # [optional] define values inline
@@ -34,7 +34,22 @@ helm.install:
       - /path/to/vars.yml
     
     # [optional] whether to wait for helm chart to be installed
-    wait: Joi.boolean(),
+    wait: true
     # [optional] timeout in seconds - min 0, max 3600 (1 hour)
-    timeout: Joi.number().integer().min(0).max(60 * 60)
+    timeout: 300
+```
+
+## Action Handler: Helm Delete
+
+**ID:** a6s.k8s.helm.delete
+
+**Aliases:**
+ - k8s.helm.delete
+ - helm.delete
+
+**Example:**
+```yaml
+helm.delete:
+  # release name
+  name: release-name
 ```

@@ -1,6 +1,6 @@
 import {suite, test} from 'mocha-typescript';
 
-import {K8sHelmUpgradeOrInstallActionHandler} from '../../../src/handlers/helm';
+import {K8sHelmDeleteActionHandler} from '../../../src/handlers/helm';
 import {ContextUtil} from 'fbl/dist/src/utils';
 import {ActionSnapshot} from 'fbl/dist/src/models';
 import * as assert from 'assert';
@@ -15,10 +15,10 @@ const chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
 
 @suite()
-class K8sHelmUpgradeOrInstallActionHandlerTestSuite extends K8sHelmBaseTestSuite {
+class K8sHelmDeleteActionHandlerTestSuite extends K8sHelmBaseTestSuite {
     @test()
     async failValidation() {
-        const actionHandler = new K8sHelmUpgradeOrInstallActionHandler();
+        const actionHandler = new K8sHelmDeleteActionHandler();
         const context = ContextUtil.generateEmptyContext();
         const snapshot = new ActionSnapshot('.', {}, '', 0);
 
@@ -27,46 +27,62 @@ class K8sHelmUpgradeOrInstallActionHandlerTestSuite extends K8sHelmBaseTestSuite
         ).to.be.rejected;
 
         await chai.expect(
-            actionHandler.validate({
-                name: 'test'
-            }, context, snapshot)
+            actionHandler.validate({}, context, snapshot)
         ).to.be.rejected;
     }
 
     @test()
     async passValidation() {
-        const actionHandler = new K8sHelmUpgradeOrInstallActionHandler();
+        const actionHandler = new K8sHelmDeleteActionHandler();
         const context = ContextUtil.generateEmptyContext();
         const snapshot = new ActionSnapshot('.', {}, '', 0);
 
         await actionHandler.validate({
-            chart: 'test'
+            name: 'test'
         }, context, snapshot);
     }
 
     @test()
-    async installHelm(): Promise<void> {
+    async deleteHelm(): Promise<void> {
+        const name = 'delete-helm-test';
         const assetsDir = join(__dirname, '../../../../test/assets');
 
-        const actionHandler = new K8sHelmUpgradeOrInstallActionHandler();
-        const context = ContextUtil.generateEmptyContext();
-        const snapshot = new ActionSnapshot('.', {}, assetsDir, 0);
+        // install helm chart
+        let result = await Container.get(K8sHelmService)
+            .execHelmCommand(['install', '-n', name, '--wait', 'helm/sample'], assetsDir);
 
-        const options = {
-            chart: 'helm/sample',
-            name: 'helm-test'
-        };
+        if (result.code !== 0) {
+            throw new Error(`code: ${result.code};\nstdout: ${result.stdout};\nstderr: ${result.stderr}`);
+        }
 
-        await actionHandler.validate(options, context, snapshot);
-        await actionHandler.execute(options, context, snapshot);
-
-        const result = await Container.get(K8sHelmService)
+        // verify helm exists
+        result = await Container.get(K8sHelmService)
             .execHelmCommand(['list', '-q']);
 
         if (result.code !== 0) {
             throw new Error(`code: ${result.code};\nstdout: ${result.stdout};\nstderr: ${result.stderr}`);
         }
 
-        assert.deepStrictEqual(result.stdout.trim(), options.name);
+        assert.deepStrictEqual(result.stdout.trim(), name);
+
+        const actionHandler = new K8sHelmDeleteActionHandler();
+        const context = ContextUtil.generateEmptyContext();
+        const snapshot = new ActionSnapshot('.', {}, '.', 0);
+
+        const options = {
+            name: name
+        };
+
+        await actionHandler.validate(options, context, snapshot);
+        await actionHandler.execute(options, context, snapshot);
+
+        result = await Container.get(K8sHelmService)
+            .execHelmCommand(['list', '-q']);
+
+        if (result.code !== 0) {
+            throw new Error(`code: ${result.code};\nstdout: ${result.stdout};\nstderr: ${result.stderr}`);
+        }
+
+        assert.deepStrictEqual(result.stdout.trim(), '');
     }
 }

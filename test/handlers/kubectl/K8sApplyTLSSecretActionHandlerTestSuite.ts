@@ -81,7 +81,7 @@ class K8sApplyTLSSecretActionHandlerTestSuite {
             }
         }, context, snapshot);
 
-        actionHandler.validate({
+        await actionHandler.validate({
             name: 'test',
             files: {
                 cert: 'cert.crt',
