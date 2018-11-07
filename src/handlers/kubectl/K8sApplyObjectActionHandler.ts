@@ -1,6 +1,6 @@
 import {ActionHandler, ActionSnapshot} from 'fbl/dist/src/models';
 import * as Joi from 'joi';
-import {IContext, IActionHandlerMetadata} from 'fbl/dist/src/interfaces';
+import {IContext, IActionHandlerMetadata, IDelegatedParameters} from 'fbl/dist/src/interfaces';
 import {IK8sObject_JOI_SCHEMA} from '../../interfaces';
 import {Container} from 'typedi';
 import {K8sKubectlService} from '../../services';
@@ -26,7 +26,7 @@ export class K8sApplyObjectActionHandler extends ActionHandler {
         return IK8sObject_JOI_SCHEMA;
     }
 
-    async execute(options: any, context: IContext, snapshot: ActionSnapshot): Promise<void> {
+    async execute(options: any, context: IContext, snapshot: ActionSnapshot, parameters: IDelegatedParameters): Promise<void> {
         await Container.get(K8sKubectlService).applyObject(options, context);
     }
 }

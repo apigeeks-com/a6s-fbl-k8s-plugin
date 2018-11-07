@@ -1,8 +1,8 @@
 import {ActionHandler, ActionSnapshot} from 'fbl/dist/src/models';
 import * as Joi from 'joi';
-import {IContext, IActionHandlerMetadata} from 'fbl/dist/src/interfaces';
+import {IContext, IDelegatedParameters, IActionHandlerMetadata} from 'fbl/dist/src/interfaces';
 import {Container} from 'typedi';
-import {K8sHelmService} from '../../services/K8sHelmService';
+import {K8sHelmService} from '../../services';
 
 const packageJson = require('../../../../package.json');
 
@@ -29,7 +29,7 @@ export class K8sHelmDeleteActionHandler extends ActionHandler {
         return K8sHelmDeleteActionHandler.schema;
     }
 
-    async execute(options: any, context: IContext, snapshot: ActionSnapshot): Promise<void> {
+    async execute(options: any, context: IContext, snapshot: ActionSnapshot, parameters: IDelegatedParameters): Promise<void> {
         await Container.get(K8sHelmService).remove(options.name);
     }
 }

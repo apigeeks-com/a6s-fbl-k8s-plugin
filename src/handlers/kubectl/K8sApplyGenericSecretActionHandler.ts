@@ -1,6 +1,6 @@
 import {ActionHandler, ActionSnapshot} from 'fbl/dist/src/models';
 import * as Joi from 'joi';
-import {IContext, IActionHandlerMetadata} from 'fbl/dist/src/interfaces';
+import {IContext, IActionHandlerMetadata, IDelegatedParameters} from 'fbl/dist/src/interfaces';
 import {Container} from 'typedi';
 import {K8sKubectlService} from '../../services';
 import {FSUtil} from 'fbl/dist/src/utils';
@@ -47,7 +47,7 @@ export class K8sApplyGenericSecretActionHandler extends ActionHandler {
         return K8sApplyGenericSecretActionHandler.schema;
     }
 
-    async execute(options: any, context: IContext, snapshot: ActionSnapshot): Promise<void> {
+    async execute(options: any, context: IContext, snapshot: ActionSnapshot, parameters: IDelegatedParameters): Promise<void> {
         const object: IK8sObject = {
             apiVersion: 'v1',
             kind: 'Secret',

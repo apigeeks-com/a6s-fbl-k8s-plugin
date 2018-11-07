@@ -1,6 +1,6 @@
 import {ActionHandler, ActionSnapshot} from 'fbl/dist/src/models';
 import * as Joi from 'joi';
-import {IContext, IActionHandlerMetadata} from 'fbl/dist/src/interfaces';
+import {IContext, IActionHandlerMetadata, IDelegatedParameters} from 'fbl/dist/src/interfaces';
 import {Container} from 'typedi';
 import {K8sKubectlService} from '../../services';
 import {IK8sObject, IK8sObject_JOI_SCHEMA} from '../../interfaces';
@@ -44,8 +44,8 @@ export class K8sApplyTLSSecretActionHandler extends ActionHandler {
         return K8sApplyTLSSecretActionHandler.schema;
     }
 
-    async validate(options: any, context: IContext, snapshot: ActionSnapshot): Promise<void> {
-        await super.validate(options, context, snapshot);
+    async validate(options: any, context: IContext, snapshot: ActionSnapshot, parameters: IDelegatedParameters): Promise<void> {
+        await super.validate(options, context, snapshot, parameters);
 
         if (options.files) {
             const existsAsync = promisify(exists);
@@ -62,7 +62,7 @@ export class K8sApplyTLSSecretActionHandler extends ActionHandler {
         }
     }
 
-    async execute(options: any, context: IContext, snapshot: ActionSnapshot): Promise<void> {
+    async execute(options: any, context: IContext, snapshot: ActionSnapshot, parameters: IDelegatedParameters): Promise<void> {
         const object: IK8sObject = {
             apiVersion: 'v1',
             kind: 'Secret',
