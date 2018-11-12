@@ -1,19 +1,12 @@
 #!/bin/bash
-echo "-> starting docker daemon..."
-DOCKER_DAEMON_ARGS=-D wrapdocker
 
-exit_code=$?
-if [[ $exit_code != 0 ]]; then
-    echo "<- failed to start docker daemon"
-    exit $exit_code
+if [[ $KIND_KEEP_ORIGINAL_CLUSTER == 0 ]]; then
+    echo "-> removing kind cluster..."
+    kind delete cluster
+
+    echo "-> creating kind cluster..."
+    kind create cluster
 fi
-
-echo "-> cleanup docker images..."
-docker kill $(docker ps -q)
-docker rm $(docker ps -aq)
-
-echo "-> creating kind cluster..."
-kind create cluster
 
 exit_code=$?
 if [[ $exit_code != 0 ]]; then
@@ -36,15 +29,12 @@ if [[ $exit_code != 0 ]]; then
     exit $exit_code
 fi
 
-echo "-> sleep for 60 seconds to give enough time for tiller to boot..."
-sleep 60
-
-helm version
-exit_code=$?
-if [[ $exit_code != 0 ]]; then
-    echo "<- tiller is not ready yet"
-    exit $exit_code
-fi
+sleep 5
+until timeout 5 helm version
+do
+  echo "-> tiller is not ready yet. waiting..."
+  sleep 1
+done
 
 # navigate to project dir
 cd /usr/app
@@ -57,7 +47,9 @@ echo "-> running tests..."
 yarn test
 exit_code=$?
 
-echo "-> removing kind cluster..."
-kind delete cluster
+if [[ $KIND_KEEP_CREATED_CLUSTER == 0 ]]; then
+    echo "-> removing kind cluster..."
+    kind delete cluster
+fi
 
 exit $exit_code

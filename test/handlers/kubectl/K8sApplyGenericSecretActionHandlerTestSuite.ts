@@ -26,37 +26,37 @@ class K8sApplyGenericSecretActionHandlerTestSuite {
     async failValidation() {
         const actionHandler = new K8sApplyGenericSecretActionHandler();
         const context = ContextUtil.generateEmptyContext();
-        const snapshot = new ActionSnapshot('.', {}, '', 0);
+        const snapshot = new ActionSnapshot('.', {}, '', 0, {});
 
         await chai.expect(
-            actionHandler.validate([], context, snapshot)
+            actionHandler.validate([], context, snapshot, {})
         ).to.be.rejected;
 
         await chai.expect(
             actionHandler.validate({
                 name: 'test'
-            }, context, snapshot)
+            }, context, snapshot, {})
         ).to.be.rejected;
 
         await chai.expect(
             actionHandler.validate({
                 name: 'test',
                 files: []
-            }, context, snapshot)
+            }, context, snapshot, {})
         ).to.be.rejected;
 
         await chai.expect(
             actionHandler.validate({
                 name: 'test',
                 inline: []
-            }, context, snapshot)
+            }, context, snapshot, {})
         ).to.be.rejected;
 
         await chai.expect(
             actionHandler.validate({
                 name: 'test',
                 inline: {}
-            }, context, snapshot)
+            }, context, snapshot, {})
         ).to.be.rejected;
     }
 
@@ -64,19 +64,19 @@ class K8sApplyGenericSecretActionHandlerTestSuite {
     async passValidation() {
         const actionHandler = new K8sApplyGenericSecretActionHandler();
         const context = ContextUtil.generateEmptyContext();
-        const snapshot = new ActionSnapshot('.', {}, '', 0);
+        const snapshot = new ActionSnapshot('.', {}, '', 0, {});
 
         await actionHandler.validate({
             name: 'test',
             files: ['test.yml']
-        }, context, snapshot);
+        }, context, snapshot, {});
 
         await actionHandler.validate({
             name: 'test',
             inline: {
                 test: 1
             }
-        }, context, snapshot);
+        }, context, snapshot, {});
 
         await actionHandler.validate({
             name: 'test',
@@ -84,14 +84,14 @@ class K8sApplyGenericSecretActionHandlerTestSuite {
             inline: {
                 test: 1
             }
-        }, context, snapshot);
+        }, context, snapshot, {});
     }
 
     @test()
     async createNewSecretInline(): Promise<void> {
         const actionHandler = new K8sApplyGenericSecretActionHandler();
         const context = ContextUtil.generateEmptyContext();
-        const snapshot = new ActionSnapshot('.', {}, '', 0);
+        const snapshot = new ActionSnapshot('.', {}, '', 0, {});
 
         const options = {
             name: 'secret-generic-test-inline',
@@ -102,8 +102,8 @@ class K8sApplyGenericSecretActionHandlerTestSuite {
             }
         };
 
-        await actionHandler.validate(options, context, snapshot);
-        await actionHandler.execute(options, context, snapshot);
+        await actionHandler.validate(options, context, snapshot, {});
+        await actionHandler.execute(options, context, snapshot, {});
 
         const result = await Container.get(K8sKubectlService)
             .execKubectlCommand(['get', 'secret', options.name, '-o', 'json']);
@@ -126,7 +126,7 @@ class K8sApplyGenericSecretActionHandlerTestSuite {
     async createNewSecretFiles(): Promise<void> {
         const actionHandler = new K8sApplyGenericSecretActionHandler();
         const context = ContextUtil.generateEmptyContext();
-        const snapshot = new ActionSnapshot('.', {}, '', 0);
+        const snapshot = new ActionSnapshot('.', {}, '', 0, {});
 
         const tempFile = await Container.get(TempPathsRegistry).createTempFile(false, '.txt');
         await promisify(writeFile)(tempFile, 'test=true', 'utf8');
@@ -136,8 +136,8 @@ class K8sApplyGenericSecretActionHandlerTestSuite {
             files: [tempFile]
         };
 
-        await actionHandler.validate(options, context, snapshot);
-        await actionHandler.execute(options, context, snapshot);
+        await actionHandler.validate(options, context, snapshot, {});
+        await actionHandler.execute(options, context, snapshot, {});
 
         const result = await Container.get(K8sKubectlService)
             .execKubectlCommand(['get', 'secret', options.name, '-o', 'json']);
@@ -159,7 +159,7 @@ class K8sApplyGenericSecretActionHandlerTestSuite {
     async createCombinedSecret(): Promise<void> {
         const actionHandler = new K8sApplyGenericSecretActionHandler();
         const context = ContextUtil.generateEmptyContext();
-        const snapshot = new ActionSnapshot('.', {}, '', 0);
+        const snapshot = new ActionSnapshot('.', {}, '', 0, {});
 
         const tempFile = await Container.get(TempPathsRegistry).createTempFile(false, '.txt');
         await promisify(writeFile)(tempFile, 'test=true', 'utf8');
@@ -173,8 +173,8 @@ class K8sApplyGenericSecretActionHandlerTestSuite {
             }
         };
 
-        await actionHandler.validate(options, context, snapshot);
-        await actionHandler.execute(options, context, snapshot);
+        await actionHandler.validate(options, context, snapshot, {});
+        await actionHandler.execute(options, context, snapshot, {});
 
         const result = await Container.get(K8sKubectlService)
             .execKubectlCommand(['get', 'secret', options.name, '-o', 'json']);
@@ -198,7 +198,7 @@ class K8sApplyGenericSecretActionHandlerTestSuite {
     async updateSecretByName(): Promise<void> {
         const actionHandler = new K8sApplyGenericSecretActionHandler();
         const context = ContextUtil.generateEmptyContext();
-        const snapshot = new ActionSnapshot('.', {}, '', 0);
+        const snapshot = new ActionSnapshot('.', {}, '', 0, {});
 
         const options = {
             name: 'secret-generic-test-override',
@@ -208,8 +208,8 @@ class K8sApplyGenericSecretActionHandlerTestSuite {
             }
         };
 
-        await actionHandler.validate(options, context, snapshot);
-        await actionHandler.execute(options, context, snapshot);
+        await actionHandler.validate(options, context, snapshot, {});
+        await actionHandler.execute(options, context, snapshot, {});
 
         let result = await Container.get(K8sKubectlService)
             .execKubectlCommand(['get', 'secret', options.name, '-o', 'json']);
@@ -227,7 +227,7 @@ class K8sApplyGenericSecretActionHandlerTestSuite {
         // update secret
 
         options.inline.port = 9999;
-        await actionHandler.execute(options, context, snapshot);
+        await actionHandler.execute(options, context, snapshot, {});
 
         result = await Container.get(K8sKubectlService)
             .execKubectlCommand(['get', 'secret', options.name, '-o', 'json']);

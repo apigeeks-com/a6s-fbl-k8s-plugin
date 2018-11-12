@@ -20,16 +20,16 @@ class K8sHelmUpgradeOrInstallActionHandlerTestSuite extends K8sHelmBaseTestSuite
     async failValidation() {
         const actionHandler = new K8sHelmUpgradeOrInstallActionHandler();
         const context = ContextUtil.generateEmptyContext();
-        const snapshot = new ActionSnapshot('.', {}, '', 0);
+        const snapshot = new ActionSnapshot('.', {}, '', 0, {});
 
         await chai.expect(
-            actionHandler.validate([], context, snapshot)
+            actionHandler.validate([], context, snapshot, {})
         ).to.be.rejected;
 
         await chai.expect(
             actionHandler.validate({
                 name: 'test'
-            }, context, snapshot)
+            }, context, snapshot, {})
         ).to.be.rejected;
     }
 
@@ -37,11 +37,11 @@ class K8sHelmUpgradeOrInstallActionHandlerTestSuite extends K8sHelmBaseTestSuite
     async passValidation() {
         const actionHandler = new K8sHelmUpgradeOrInstallActionHandler();
         const context = ContextUtil.generateEmptyContext();
-        const snapshot = new ActionSnapshot('.', {}, '', 0);
+        const snapshot = new ActionSnapshot('.', {}, '', 0, {});
 
         await actionHandler.validate({
             chart: 'test'
-        }, context, snapshot);
+        }, context, snapshot, {});
     }
 
     @test()
@@ -50,15 +50,15 @@ class K8sHelmUpgradeOrInstallActionHandlerTestSuite extends K8sHelmBaseTestSuite
 
         const actionHandler = new K8sHelmUpgradeOrInstallActionHandler();
         const context = ContextUtil.generateEmptyContext();
-        const snapshot = new ActionSnapshot('.', {}, assetsDir, 0);
+        const snapshot = new ActionSnapshot('.', {}, assetsDir, 0, {});
 
         const options = {
             chart: 'helm/sample',
             name: 'helm-test'
         };
 
-        await actionHandler.validate(options, context, snapshot);
-        await actionHandler.execute(options, context, snapshot);
+        await actionHandler.validate(options, context, snapshot, {});
+        await actionHandler.execute(options, context, snapshot, {});
 
         const result = await Container.get(K8sHelmService)
             .execHelmCommand(['list', '-q']);

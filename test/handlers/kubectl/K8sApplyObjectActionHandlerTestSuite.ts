@@ -23,23 +23,23 @@ class K8sApplyObjectActionHandlerTestSuite {
     async failValidation() {
         const actionHandler = new K8sApplyObjectActionHandler();
         const context = ContextUtil.generateEmptyContext();
-        const snapshot = new ActionSnapshot('.', {}, '', 0);
+        const snapshot = new ActionSnapshot('.', {}, '', 0, {});
 
         await chai.expect(
-            actionHandler.validate([], context, snapshot)
+            actionHandler.validate([], context, snapshot, {})
         ).to.be.rejected;
 
         await chai.expect(
             actionHandler.validate({
                 name: 'test'
-            }, context, snapshot)
+            }, context, snapshot, {})
         ).to.be.rejected;
 
         await chai.expect(
             actionHandler.validate({
                 kind: 'CustomObject',
                 apiVersion: 'v1'
-            }, context, snapshot)
+            }, context, snapshot, {})
         ).to.be.rejected;
 
         await chai.expect(
@@ -47,7 +47,7 @@ class K8sApplyObjectActionHandlerTestSuite {
                 kind: 'CustomObject',
                 apiVersion: 'v1',
                 metadata: {}
-            }, context, snapshot)
+            }, context, snapshot, {})
         ).to.be.rejected;
 
         await chai.expect(
@@ -56,7 +56,7 @@ class K8sApplyObjectActionHandlerTestSuite {
                 metadata: {
                     name: 'test'
                 }
-            }, context, snapshot)
+            }, context, snapshot, {})
         ).to.be.rejected;
     }
 
@@ -64,7 +64,7 @@ class K8sApplyObjectActionHandlerTestSuite {
     async passValidation() {
         const actionHandler = new K8sApplyObjectActionHandler();
         const context = ContextUtil.generateEmptyContext();
-        const snapshot = new ActionSnapshot('.', {}, '', 0);
+        const snapshot = new ActionSnapshot('.', {}, '', 0, {});
 
         await actionHandler.validate({
             kind: 'CustomObject',
@@ -72,14 +72,14 @@ class K8sApplyObjectActionHandlerTestSuite {
             metadata: {
                 name: 'test'
             }
-        }, context, snapshot);
+        }, context, snapshot, {});
     }
 
     @test()
     async registerCustomObject(): Promise<void> {
         const actionHandler = new K8sApplyObjectActionHandler();
         const context = ContextUtil.generateEmptyContext();
-        const snapshot = new ActionSnapshot('.', {}, '', 0);
+        const snapshot = new ActionSnapshot('.', {}, '', 0, {});
 
         const obj = {
             kind: 'ConfigMap',
@@ -92,8 +92,8 @@ class K8sApplyObjectActionHandlerTestSuite {
             }
         };
 
-        await actionHandler.validate(obj, context, snapshot);
-        await actionHandler.execute(obj, context, snapshot);
+        await actionHandler.validate(obj, context, snapshot, {});
+        await actionHandler.execute(obj, context, snapshot, {});
 
         const result = await Container.get(K8sKubectlService)
             .execKubectlCommand(['get', obj.kind, obj.metadata.name, '-o', 'json']);

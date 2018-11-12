@@ -4,7 +4,12 @@ services:
     image: a6s-fbl-k8s-plugin:1.0.0
     build: .
     privileged: true
+    network_mode: host
+    environment:
+      KIND_KEEP_ORIGINAL_CLUSTER: 0
+      KIND_KEEP_GENERATED_CLUSTER: 0
     volumes:
       - ./coverage:/usr/app/coverage
       - ./.nyc_output:/usr/app/.nyc_output
       - ./mochawesome-report:/usr/app/mochawesome-report
+      - /var/run/docker.sock:/var/run/docker.sock

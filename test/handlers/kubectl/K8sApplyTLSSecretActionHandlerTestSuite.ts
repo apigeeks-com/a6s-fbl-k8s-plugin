@@ -26,30 +26,30 @@ class K8sApplyTLSSecretActionHandlerTestSuite {
     async failValidation() {
         const actionHandler = new K8sApplyTLSSecretActionHandler();
         const context = ContextUtil.generateEmptyContext();
-        const snapshot = new ActionSnapshot('.', {}, '', 0);
+        const snapshot = new ActionSnapshot('.', {}, '', 0, {});
 
         await chai.expect(
-            actionHandler.validate([], context, snapshot)
+            actionHandler.validate([], context, snapshot, {})
         ).to.be.rejected;
 
         await chai.expect(
             actionHandler.validate({
                 name: 'test'
-            }, context, snapshot)
+            }, context, snapshot, {})
         ).to.be.rejected;
 
         await chai.expect(
             actionHandler.validate({
                 name: 'test',
                 files: []
-            }, context, snapshot)
+            }, context, snapshot, {})
         ).to.be.rejected;
 
         await chai.expect(
             actionHandler.validate({
                 name: 'test',
                 inline: []
-            }, context, snapshot)
+            }, context, snapshot, {})
         ).to.be.rejected;
 
         await chai.expect(
@@ -63,7 +63,7 @@ class K8sApplyTLSSecretActionHandlerTestSuite {
                     cert: 'cert.crt',
                     key: 'key.key'
                 }
-            }, context, snapshot)
+            }, context, snapshot, {})
         ).to.be.rejected;
     }
 
@@ -71,7 +71,7 @@ class K8sApplyTLSSecretActionHandlerTestSuite {
     async passValidation() {
         const actionHandler = new K8sApplyTLSSecretActionHandler();
         const context = ContextUtil.generateEmptyContext();
-        const snapshot = new ActionSnapshot('.', {}, '', 0);
+        const snapshot = new ActionSnapshot('.', {}, '', 0, {});
 
         await actionHandler.validate({
             name: 'test',
@@ -79,7 +79,7 @@ class K8sApplyTLSSecretActionHandlerTestSuite {
                 cert: 'inline:cert',
                 key: 'inline:key'
             }
-        }, context, snapshot);
+        }, context, snapshot, {});
 
         const tempPathsRegistry = Container.get(TempPathsRegistry);
         const cert = await tempPathsRegistry.createTempFile();
@@ -91,14 +91,14 @@ class K8sApplyTLSSecretActionHandlerTestSuite {
                 cert: cert,
                 key: key
             }
-        }, context, snapshot);
+        }, context, snapshot, {});
     }
 
     @test()
     async registerTLSSecretWithInlineParams(): Promise<void> {
         const actionHandler = new K8sApplyTLSSecretActionHandler();
         const context = ContextUtil.generateEmptyContext();
-        const snapshot = new ActionSnapshot('.', {}, '', 0);
+        const snapshot = new ActionSnapshot('.', {}, '', 0, {});
 
         const assetsDir = join(__dirname, '../../../../test/assets');
         const cert = await promisify(readFile)(join(assetsDir, 'cert.crt'), 'utf8');
@@ -112,8 +112,8 @@ class K8sApplyTLSSecretActionHandlerTestSuite {
             }
         };
 
-        await actionHandler.validate(options, context, snapshot);
-        await actionHandler.execute(options, context, snapshot);
+        await actionHandler.validate(options, context, snapshot, {});
+        await actionHandler.execute(options, context, snapshot, {});
 
         const result = await Container.get(K8sKubectlService).execKubectlCommand(['get', 'secret', options.name, '-o', 'json']);
 
@@ -135,7 +135,7 @@ class K8sApplyTLSSecretActionHandlerTestSuite {
     async registerTLSSecretWithFilesParams(): Promise<void> {
         const actionHandler = new K8sApplyTLSSecretActionHandler();
         const context = ContextUtil.generateEmptyContext();
-        const snapshot = new ActionSnapshot('.', {}, '', 0);
+        const snapshot = new ActionSnapshot('.', {}, '', 0, {});
 
         const assetsDir = join(__dirname, '../../../../test/assets');
         const cert = join(assetsDir, 'cert.crt');
@@ -150,8 +150,8 @@ class K8sApplyTLSSecretActionHandlerTestSuite {
             }
         };
 
-        await actionHandler.validate(options, context, snapshot);
-        await actionHandler.execute(options, context, snapshot);
+        await actionHandler.validate(options, context, snapshot, {});
+        await actionHandler.execute(options, context, snapshot, {});
 
         const result = await Container.get(K8sKubectlService).execKubectlCommand(['get', 'secret', options.name, '-o', 'json']);
 

@@ -1,17 +1,16 @@
 import {IPlugin} from "fbl/dist/src/interfaces";
 import {
+    K8sHelmDeleteActionHandler,
+    K8sHelmUpgradeOrInstallActionHandler,
+
     K8sApplyConfigMapActionHandler,
     K8sApplyDockerRegistrySecretActionHandler,
     K8sApplyGenericSecretActionHandler,
     K8sApplyObjectActionHandler,
     K8sApplyTLSSecretActionHandler,
-    K8sDeleteObjectActionHandler
+    K8sDeleteObjectActionHandler,
+    K8sGetObjectActionHandler
 } from "./src/handlers";
-
-import {
-    K8sHelmDeleteActionHandler,
-    K8sHelmUpgradeOrInstallActionHandler
-} from './src/handlers/helm';
 
 const packageJson = require('../package.json');
 
@@ -45,7 +44,8 @@ module.exports = <IPlugin> {
       new K8sApplyGenericSecretActionHandler(),
       new K8sApplyObjectActionHandler(),
       new K8sApplyTLSSecretActionHandler(),
-      new K8sDeleteObjectActionHandler()
+      new K8sDeleteObjectActionHandler(),
+      new K8sGetObjectActionHandler(),
   ],
 
   templateUtils: []

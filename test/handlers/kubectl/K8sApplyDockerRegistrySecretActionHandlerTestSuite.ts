@@ -23,30 +23,30 @@ class K8sApplyDockerRegistrySecretActionHandlerTestSuite {
     async failValidation() {
         const actionHandler = new K8sApplyDockerRegistrySecretActionHandler();
         const context = ContextUtil.generateEmptyContext();
-        const snapshot = new ActionSnapshot('.', {}, '', 0);
+        const snapshot = new ActionSnapshot('.', {}, '', 0, {});
 
         await chai.expect(
-            actionHandler.validate([], context, snapshot)
+            actionHandler.validate([], context, snapshot, {})
         ).to.be.rejected;
 
         await chai.expect(
             actionHandler.validate({
                 name: 'test'
-            }, context, snapshot)
+            }, context, snapshot, {})
         ).to.be.rejected;
 
         await chai.expect(
             actionHandler.validate({
                 name: 'test',
                 files: []
-            }, context, snapshot)
+            }, context, snapshot, {})
         ).to.be.rejected;
 
         await chai.expect(
             actionHandler.validate({
                 name: 'test',
                 inline: []
-            }, context, snapshot)
+            }, context, snapshot, {})
         ).to.be.rejected;
 
         await chai.expect(
@@ -55,7 +55,7 @@ class K8sApplyDockerRegistrySecretActionHandlerTestSuite {
                 server: 'test',
                 username: 'test',
                 password: 'test'
-            }, context, snapshot)
+            }, context, snapshot, {})
         ).to.be.rejected;
     }
 
@@ -63,7 +63,7 @@ class K8sApplyDockerRegistrySecretActionHandlerTestSuite {
     async passValidation() {
         const actionHandler = new K8sApplyDockerRegistrySecretActionHandler();
         const context = ContextUtil.generateEmptyContext();
-        const snapshot = new ActionSnapshot('.', {}, '', 0);
+        const snapshot = new ActionSnapshot('.', {}, '', 0, {});
 
         await actionHandler.validate({
             name: 'test',
@@ -71,7 +71,7 @@ class K8sApplyDockerRegistrySecretActionHandlerTestSuite {
             username: 'test',
             password: 'test',
             email: 'foo@bar.com'
-        }, context, snapshot);
+        }, context, snapshot, {});
 
     }
 
@@ -79,7 +79,7 @@ class K8sApplyDockerRegistrySecretActionHandlerTestSuite {
     async registerDockerSecretWithoutNamespace(): Promise<void> {
         const actionHandler = new K8sApplyDockerRegistrySecretActionHandler();
         const context = ContextUtil.generateEmptyContext();
-        const snapshot = new ActionSnapshot('.', {}, '', 0);
+        const snapshot = new ActionSnapshot('.', {}, '', 0, {});
 
         const options = {
             name: 'secret-docker-test-with-ns',
@@ -89,8 +89,8 @@ class K8sApplyDockerRegistrySecretActionHandlerTestSuite {
             email: 'foo@bar.com'
         };
 
-        await actionHandler.validate(options, context, snapshot);
-        await actionHandler.execute(options, context, snapshot);
+        await actionHandler.validate(options, context, snapshot, {});
+        await actionHandler.execute(options, context, snapshot, {});
 
         const result = await Container.get(K8sKubectlService)
             .execKubectlCommand(['get', 'secret', options.name, '-o', 'json']);
@@ -121,7 +121,7 @@ class K8sApplyDockerRegistrySecretActionHandlerTestSuite {
     async registerDockerSecretWithNamespace(): Promise<void> {
         const actionHandler = new K8sApplyDockerRegistrySecretActionHandler();
         const context = ContextUtil.generateEmptyContext();
-        const snapshot = new ActionSnapshot('.', {}, '', 0);
+        const snapshot = new ActionSnapshot('.', {}, '', 0, {});
 
         const options = {
             name: 'secret-docker-test-without-ns',
@@ -132,8 +132,8 @@ class K8sApplyDockerRegistrySecretActionHandlerTestSuite {
             email: 'foo@bar.com'
         };
 
-        await actionHandler.validate(options, context, snapshot);
-        await actionHandler.execute(options, context, snapshot);
+        await actionHandler.validate(options, context, snapshot, {});
+        await actionHandler.execute(options, context, snapshot, {});
 
         const result = await Container.get(K8sKubectlService)
             .execKubectlCommand(['get', 'secret', options.name, '-o', 'json']);

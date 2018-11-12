@@ -20,14 +20,14 @@ class K8sHelmDeleteActionHandlerTestSuite extends K8sHelmBaseTestSuite {
     async failValidation() {
         const actionHandler = new K8sHelmDeleteActionHandler();
         const context = ContextUtil.generateEmptyContext();
-        const snapshot = new ActionSnapshot('.', {}, '', 0);
+        const snapshot = new ActionSnapshot('.', {}, '', 0, {});
 
         await chai.expect(
-            actionHandler.validate([], context, snapshot)
+            actionHandler.validate([], context, snapshot, {})
         ).to.be.rejected;
 
         await chai.expect(
-            actionHandler.validate({}, context, snapshot)
+            actionHandler.validate({}, context, snapshot, {})
         ).to.be.rejected;
     }
 
@@ -35,11 +35,11 @@ class K8sHelmDeleteActionHandlerTestSuite extends K8sHelmBaseTestSuite {
     async passValidation() {
         const actionHandler = new K8sHelmDeleteActionHandler();
         const context = ContextUtil.generateEmptyContext();
-        const snapshot = new ActionSnapshot('.', {}, '', 0);
+        const snapshot = new ActionSnapshot('.', {}, '', 0, {});
 
         await actionHandler.validate({
             name: 'test'
-        }, context, snapshot);
+        }, context, snapshot, {});
     }
 
     @test()
@@ -67,14 +67,14 @@ class K8sHelmDeleteActionHandlerTestSuite extends K8sHelmBaseTestSuite {
 
         const actionHandler = new K8sHelmDeleteActionHandler();
         const context = ContextUtil.generateEmptyContext();
-        const snapshot = new ActionSnapshot('.', {}, '.', 0);
+        const snapshot = new ActionSnapshot('.', {}, '.', 0, {});
 
         const options = {
             name: name
         };
 
-        await actionHandler.validate(options, context, snapshot);
-        await actionHandler.execute(options, context, snapshot);
+        await actionHandler.validate(options, context, snapshot, {});
+        await actionHandler.execute(options, context, snapshot, {});
 
         result = await Container.get(K8sHelmService)
             .execHelmCommand(['list', '-q']);

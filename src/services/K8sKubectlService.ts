@@ -148,7 +148,11 @@ export class K8sKubectlService {
         ]);
 
         if (result.stderr.trim().indexOf('Error from server (NotFound)') === 0) {
-            return null;
+            throw new Error(`Object ${k8sObject.kind} with name ${k8sObject.metadata.name} not found`);
+        }
+
+        if (result.code) {
+            throw new Error(`Unexpected error occurred upon getting object ${k8sObject.kind} with name ${k8sObject.metadata.name}. ${result.stderr.trim()}`);
         }
 
         if (result.stdout) {

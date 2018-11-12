@@ -1,6 +1,6 @@
 import {suite, test} from 'mocha-typescript';
 
-import {K8sApplyObjectActionHandler, K8sDeleteObjectActionHandler} from '../../../src/handlers/kubectl';
+import {K8sApplyObjectActionHandler, K8sGetObjectActionHandler} from '../../../src/handlers/kubectl';
 import {ContextUtil} from 'fbl/dist/src/utils';
 import {ActionSnapshot} from 'fbl/dist/src/models';
 import * as assert from 'assert';
@@ -21,7 +21,7 @@ class K8sDeleteObjectActionHandlerTestSuite {
 
     @test()
     async failValidation() {
-        const actionHandler = new K8sDeleteObjectActionHandler();
+        const actionHandler = new K8sGetObjectActionHandler();
         const context = ContextUtil.generateEmptyContext();
         const snapshot = new ActionSnapshot('.', {}, '', 0, {});
 
@@ -47,11 +47,29 @@ class K8sDeleteObjectActionHandlerTestSuite {
                 metadata: {}
             }, context, snapshot, {})
         ).to.be.rejected;
+
+        await chai.expect(
+            actionHandler.validate({
+                kind: 'CustomObject',
+                metadata: {
+                    name: 'test'
+                }
+            }, context, snapshot, {})
+        ).to.be.rejected;
+
+        await chai.expect(
+            actionHandler.validate({
+                kind: 'CustomObject',
+                metadata: {
+                    name: 'test'
+                }
+            }, context, snapshot, {})
+        ).to.be.rejected;
     }
 
     @test()
     async passValidation() {
-        const actionHandler = new K8sDeleteObjectActionHandler();
+        const actionHandler = new K8sGetObjectActionHandler();
         const context = ContextUtil.generateEmptyContext();
         const snapshot = new ActionSnapshot('.', {}, '', 0, {});
 
@@ -59,14 +77,17 @@ class K8sDeleteObjectActionHandlerTestSuite {
             kind: 'CustomObject',
             metadata: {
                 name: 'test'
+            },
+            assignObjectTo: {
+                ctx: '$.test'
             }
         }, context, snapshot, {});
     }
 
     @test()
-    async deleteObject(): Promise<void> {
+    async getObject(): Promise<void> {
         const applyActionHandler = new K8sApplyObjectActionHandler();
-        const deleteActionHandler = new K8sDeleteObjectActionHandler();
+        const getActionHandler = new K8sGetObjectActionHandler();
         const context = ContextUtil.generateEmptyContext();
         const snapshot = new ActionSnapshot('.', {}, '', 0, {});
 
@@ -84,7 +105,7 @@ class K8sDeleteObjectActionHandlerTestSuite {
         await applyActionHandler.validate(obj, context, snapshot, {});
         await applyActionHandler.execute(obj, context, snapshot, {});
 
-        let result = await Container.get(K8sKubectlService)
+        const result = await Container.get(K8sKubectlService)
             .execKubectlCommand(['get', obj.kind, obj.metadata.name, '-o', 'json']);
 
         if (result.code !== 0) {
@@ -94,20 +115,26 @@ class K8sDeleteObjectActionHandlerTestSuite {
         const configMap = JSON.parse(result.stdout);
         assert.deepStrictEqual(configMap.data, obj.data);
 
-        assert.strictEqual(context.entities.registered.length, 1);
-        assert.strictEqual(context.entities.created.length, 1);
+        // get object
+        const options = {
+            kind: obj.kind,
+            metadata: {
+                name: obj.metadata.name
+            },
+            assignObjectTo: {
+                ctx: '$.test',
+                secrets: '$.test'
+            }
+        };
+        await getActionHandler.validate(options, context, snapshot, {});
+        await getActionHandler.execute(options, context, snapshot, {});
 
-        // delete object
-        await deleteActionHandler.validate(obj, context, snapshot, {});
-        await deleteActionHandler.execute(obj, context, snapshot, {});
+        assert.strictEqual(context.ctx.test.kind, obj.kind);
+        assert.strictEqual(context.ctx.test.kind, obj.kind);
+        assert.deepStrictEqual(context.ctx.test.data, obj.data);
 
-        result = await Container.get(K8sKubectlService)
-            .execKubectlCommand(['get', obj.kind, obj.metadata.name, '-o', 'json']);
-
-        if (result.code === 0) {
-            throw new Error(`code: ${result.code};\nstdout: ${result.stdout};\nstderr: ${result.stderr}`);
-        }
-
-        assert.strictEqual(result.stderr.trim(), `Error from server (NotFound): configmaps "${obj.metadata.name}" not found`);
+        assert.strictEqual(context.secrets.test.kind, obj.kind);
+        assert.strictEqual(context.secrets.test.kind, obj.kind);
+        assert.deepStrictEqual(context.secrets.test.data, obj.data);
     }
 }
