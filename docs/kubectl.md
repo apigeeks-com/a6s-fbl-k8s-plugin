@@ -209,3 +209,34 @@ kubectl.delete:
    
 # Note any additional fields are allowed, but will be ignored
 ```
+
+## Action Handler: Get K8s Object 
+
+Find K8s object and assign it to context field(s)
+
+**ID:** a6s.k8s.kubectl.get
+
+**Aliases:** 
+ - k8s.kubectl.get
+ - kubectl.get
+ 
+**Example:**
+
+```yaml
+kubectl.get:
+  # object type
+  kind: ObjectKind
+  metadata: 
+    # object name
+    name: test
+    # [optional] k8s namespace
+    namespace: default
+  # assign object to context field(s)
+  assignObjectTo:
+    # [optional] "ctx" path to assign object to
+    ctx: $.path
+    # [optional] "secrets" path to assign object to
+    secrets: $.path
+    
+# Note any additional fields are allowed, but will be ignored
+```
