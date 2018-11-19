@@ -51,12 +51,12 @@ export class K8sGetObjectActionHandler extends ActionHandler {
 
         /* istanbul ignore else */
         if (options.assignObjectTo.ctx) {
-            await ContextUtil.assignToField(context.ctx, options.assignObjectTo.ctx, object);
+            await ContextUtil.assignToField(context.ctx, options.assignObjectTo.ctx, object, false);
         }
 
         /* istanbul ignore else */
         if (options.assignObjectTo.secrets) {
-            await ContextUtil.assignToField(context.secrets, options.assignObjectTo.secrets, object);
+            await ContextUtil.assignToField(context.secrets, options.assignObjectTo.secrets, object, false);
         }
 
         snapshot.setContext(context);
