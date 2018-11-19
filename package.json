@@ -1,6 +1,6 @@
 {
   "name": "@apigeeks/fbl-k8s-plugin",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "fbl wrapper plugin for helm and kubectl cli utilities",
   "main": "dist/index.js",
   "scripts": {
@@ -20,7 +20,7 @@
   "dependencies": {
     "chai-as-promised": "7.1.1",
     "colors": "1.3.2",
-    "fbl": "1.0.2",
+    "fbl": "1.1.0",
     "joi": "14.0.4",
     "js-yaml": "3.12.0",
     "reflect-metadata": "0.1.12",

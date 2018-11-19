@@ -923,10 +923,10 @@ fast-json-stable-stringify@^2.0.0:
   resolved "https://registry.yarnpkg.com/fast-json-stable-stringify/-/fast-json-stable-stringify-2.0.0.tgz#d5142c0caee6b1189f87d3a76111064f86c8bbf2"
   integrity sha1-1RQsDK7msRifh9OnYREGT4bIu/I=
 
-fbl@1.0.2:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/fbl/-/fbl-1.0.2.tgz#21228d15806d52ff209ea21f9ba0616d2025d361"
-  integrity sha512-VXkVqlUVYTd780G1PZM5NkkrPWjkZxw84U/YjA5MnzLr1d1cHy7VrFKoxyzBh2tM+qH26y7xB6ICdajc9936Og==
+fbl@1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/fbl/-/fbl-1.1.0.tgz#11b142cfd738f704922348a90a60aa1634526482"
+  integrity sha512-TJciq07gtUnwgSAUYd1MTkcWFH3m1xXUNQzMO89DbAZ8PxO4w7MtqSZG72M8nM4j5n38IibHhabkN4uLtkybig==
   dependencies:
     cliui "4.1.0"
     colors "1.3.2"
@@ -937,16 +937,16 @@ fbl@1.0.2:
     glob-promise "3.4.0"
     got "9.3.2"
     humanize-duration "3.15.3"
-    joi "14.0.4"
+    joi "14.0.6"
     js-yaml "3.12.0"
     jsonschema "1.2.4"
-    prompts "1.2.0"
+    prompts "1.2.1"
     reflect-metadata "0.1.12"
     requireg "0.2.1"
     semver "5.6.0"
-    shelljs "0.8.2"
+    shelljs "0.8.3"
     table "5.1.0"
-    tar "4.4.7"
+    tar "4.4.8"
     tmp-promise "1.0.5"
     typedi "0.8.0"
     uuid "3.3.2"
@@ -1534,6 +1534,15 @@ joi@14.0.4:
     isemail "3.x.x"
     topo "3.x.x"
 
+joi@14.0.6:
+  version "14.0.6"
+  resolved "https://registry.yarnpkg.com/joi/-/joi-14.0.6.tgz#8c72314af6dba13ca48028a4f0af992ddc5a7472"
+  integrity sha512-mKXPSNYMG3taVBZemQj3pPOlMZGrnnu14JKAC6AHg6jJVX35L7oDk89ss1sHj+laDSEh3mD2PmeheI5k6Aw8nQ==
+  dependencies:
+    hoek "6.x.x"
+    isemail "3.x.x"
+    topo "3.x.x"
+
 js-tokens@^3.0.0, js-tokens@^3.0.2:
   version "3.0.2"
   resolved "https://registry.yarnpkg.com/js-tokens/-/js-tokens-3.0.2.tgz#9866df395102130e38f7f996bceb65443209c25b"
@@ -1596,10 +1605,10 @@ keyv@^3.0.0:
   dependencies:
     json-buffer "3.0.0"
 
-kleur@^2.0.1:
-  version "2.0.2"
-  resolved "https://registry.yarnpkg.com/kleur/-/kleur-2.0.2.tgz#b704f4944d95e255d038f0cb05fb8a602c55a300"
-  integrity sha512-77XF9iTllATmG9lSlIv0qdQ2BQ/h9t0bJllHlbvsQ0zUWfU7Yi0S8L5JXzPZgkefIiajLmBJJ4BsMJmqcf7oxQ==
+kleur@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/kleur/-/kleur-3.0.0.tgz#ae185c2e0641ffb2f8e3d182df13239df9d8d3b2"
+  integrity sha512-acHc4xKlqTNuAGmbvtd3KuNi1bnlHsdPg6Os1P5s/Ii/6g8MY3caVPDp4md04/twbh4wwPvdpnol1bc9zFsI3w==
 
 latest-version@^3.0.0:
   version "3.1.0"
@@ -2254,12 +2263,12 @@ prepend-http@^2.0.0:
   resolved "https://registry.yarnpkg.com/prepend-http/-/prepend-http-2.0.0.tgz#e92434bfa5ea8c19f41cdfd401d741a3c819d897"
   integrity sha1-6SQ0v6XqjBn0HN/UAddBo8gZ2Jc=
 
-prompts@1.2.0:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/prompts/-/prompts-1.2.0.tgz#598f7722032fb6c399beb24533129d00604c7007"
-  integrity sha512-g+I6Cer6EefDTawQhGHpdX98nhD7KQrRqyRgKCb+Sc+GG4P64EWRe5DZE402ZNkwrItf97Asf0L1z0g3waOgAA==
+prompts@1.2.1:
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/prompts/-/prompts-1.2.1.tgz#7fd4116a458d6a62761e3ccb1432d7bbd8b2cb29"
+  integrity sha512-GE33SMMVO1ISfnq3i6cE+WYK/tLxRWtZiRkl5vdg0KR0owOCPFOsq8BuFajFbW7b2bMHb8krXaQHOpZyUEuvmA==
   dependencies:
-    kleur "^2.0.1"
+    kleur "^3.0.0"
     sisteransi "^1.0.0"
 
 prop-types@^15.5.8, prop-types@^15.6.2:
@@ -2588,10 +2597,10 @@ shebang-regex@^1.0.0:
   resolved "https://registry.yarnpkg.com/shebang-regex/-/shebang-regex-1.0.0.tgz#da42f49740c0b42db2ca9728571cb190c98efea3"
   integrity sha1-2kL0l0DAtC2yypcoVxyxkMmO/qM=
 
-shelljs@0.8.2:
-  version "0.8.2"
-  resolved "https://registry.yarnpkg.com/shelljs/-/shelljs-0.8.2.tgz#345b7df7763f4c2340d584abb532c5f752ca9e35"
-  integrity sha512-pRXeNrCA2Wd9itwhvLp5LZQvPJ0wU6bcjaTMywHHGX5XWhVN2nzSu7WV0q+oUY7mGK3mgSkDDzP3MgjqdyIgbQ==
+shelljs@0.8.3:
+  version "0.8.3"
+  resolved "https://registry.yarnpkg.com/shelljs/-/shelljs-0.8.3.tgz#a7f3319520ebf09ee81275b2368adb286659b097"
+  integrity sha512-fc0BKlAWiLpwZljmOvAOTE/gXawtCoNrP5oaY7KIaQbbyHeQVg01pSEuEGvGh3HEdBU4baCD7wQBwADmM/7f7A==
   dependencies:
     glob "^7.0.0"
     interpret "^1.0.0"
@@ -2786,10 +2795,10 @@ table@5.1.0:
     slice-ansi "1.0.0"
     string-width "^2.1.1"
 
-tar@4.4.7:
-  version "4.4.7"
-  resolved "https://registry.yarnpkg.com/tar/-/tar-4.4.7.tgz#14df45023ffdcd0c233befa2fc01ebb76ee39e7c"
-  integrity sha512-mR3MzsCdN0IEWjZRuF/J9gaWHnTwOvzjqPTcvi1xXgfKTDQRp39gRETPQEfPByAdEOGmZfx1HrRsn8estaEvtA==
+tar@4.4.8:
+  version "4.4.8"
+  resolved "https://registry.yarnpkg.com/tar/-/tar-4.4.8.tgz#b19eec3fde2a96e64666df9fdb40c5ca1bc3747d"
+  integrity sha512-LzHF64s5chPQQS0IYBn9IN5h3i98c12bo4NCO7e0sGM2llXQ3p2FGC5sdENN4cTW48O915Sh+x+EXx7XW96xYQ==
   dependencies:
     chownr "^1.1.1"
     fs-minipass "^1.2.5"
