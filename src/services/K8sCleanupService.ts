@@ -1,4 +1,3 @@
-import {Inject} from 'typedi';
 import {difference, get, flattenDeep} from 'lodash';
 import * as minimatch from 'minimatch';
 import {IK8sCleanupOptions, IK8sObject} from '../interfaces';
@@ -6,14 +5,9 @@ import {K8sHelmService} from './K8sHelmService';
 import {K8sKubectlService} from './K8sKubectlService';
 import {IContextEntity} from 'fbl/dist/src/interfaces/IContext';
 import {ActionSnapshot} from 'fbl/dist/src/models';
+import {Container} from 'typedi';
 
 export class K8sCleanupService {
-    @Inject()
-    private k8sHelmService: K8sHelmService;
-
-    @Inject()
-    private k8sKubectlService: K8sKubectlService;
-
     /**
      * @param {IK8sCleanupOptions} options
      * @param {IContextEntity[]} registered
@@ -31,6 +25,7 @@ export class K8sCleanupService {
      * @return {Promise<void>}
      */
     public async cleanup(): Promise<void> {
+
         const deployedHelms = await this.getDeployedHelms();
         const allHelmObjects: IK8sObject[] = <IK8sObject[]>flattenDeep(
             await Promise.all(
@@ -95,7 +90,7 @@ export class K8sCleanupService {
         if (!this.options.dryRun) {
             await Promise.all(diff.map(async (name) => {
                 try {
-                    await this.k8sHelmService.remove(name);
+                    await Container.get(K8sHelmService).remove(name);
                     this.snapshot.log(`Helm "${name}" deleted`);
                 } catch (e) {
                     this.snapshot.log(`Helm "${name}" not deleted: ${e.message}`);
@@ -143,7 +138,7 @@ export class K8sCleanupService {
         if (!this.options.dryRun) {
             await Promise.all(diff.map(async (name) => {
                 try {
-                    await this.k8sKubectlService
+                    await Container.get(K8sKubectlService)
                         .deleteObject({
                             apiVersion: 'v1',
                             kind: kind,
@@ -169,7 +164,7 @@ export class K8sCleanupService {
      * @return {Promise<IK8sObject[]>}
      */
     private async getHelms(name: string): Promise<IK8sObject[]> {
-        return await this.k8sHelmService.getHelmObjects(name);
+        return await Container.get(K8sHelmService).getHelmObjects(name);
     }
 
     /**
@@ -226,7 +221,7 @@ export class K8sCleanupService {
      * @return {Promise<string[]>}
      */
     private async getClusterHelms(): Promise<string[]> {
-        return await this.k8sHelmService.listInstalledHelms();
+        return await Container.get(K8sHelmService).listInstalledHelms() || [];
     }
 
     /**
@@ -235,7 +230,7 @@ export class K8sCleanupService {
      * @return {Promise<string[]>}
      */
     private async getClusterSecrets(): Promise<string[]> {
-        return await this.k8sKubectlService.listObjects('Secret', this.options.namespace);
+        return await Container.get(K8sKubectlService).listObjects('Secret', this.options.namespace);
     }
 
     /**
@@ -244,7 +239,7 @@ export class K8sCleanupService {
      * @return {Promise<string[]>}
      */
     private async getClusterConfigMaps(): Promise<string[]> {
-        return await this.k8sKubectlService.listObjects('ConfigMap', this.options.namespace);
+        return await Container.get(K8sKubectlService).listObjects('ConfigMap', this.options.namespace);
     }
 
 
@@ -254,7 +249,7 @@ export class K8sCleanupService {
      * @return {Promise<string[]>}
      */
     private async getClusterStorageClasses(): Promise<string[]> {
-        return await this.k8sKubectlService.listObjects('StorageClass', this.options.namespace);
+        return await Container.get(K8sKubectlService).listObjects('StorageClass', this.options.namespace);
     }
 
     /**
@@ -263,7 +258,7 @@ export class K8sCleanupService {
      * @return {Promise<string[]>}
      */
     private async getClusterPersistentVolumeClaims(): Promise<string[]> {
-        return await this.k8sKubectlService.listObjects('PersistentVolumeClaim', this.options.namespace);
+        return await Container.get(K8sKubectlService).listObjects('PersistentVolumeClaim', this.options.namespace);
     }
 
     /**
@@ -294,6 +289,9 @@ export class K8sCleanupService {
      */
     private getDeployedK8sObjects(): IK8sObject[] {
         // TODO: implement
-        return [];
+        return this.registered
+            .filter((e => ['Secret', 'ConfigMap', 'StorageClass', 'PersistentVolumeClaim'].indexOf(e.type) !== -1))
+            .map(e => e.payload)
+        ;
     }
 }
