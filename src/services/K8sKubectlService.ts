@@ -49,9 +49,10 @@ export class K8sKubectlService {
     /**
      * Delete K8s object
      * @param {IK8sObject} k8sObject
+     * @param {IContext} context
      * @return {Promise<void>}
      */
-    async deleteObject(k8sObject: IK8sObject): Promise<void> {
+    async deleteObject(k8sObject: IK8sObject, context: IContext): Promise<void> {
         const args = [
             'delete',
             k8sObject.kind,
@@ -67,6 +68,10 @@ export class K8sKubectlService {
         if (result.code !== 0) {
             throw new Error('Unexpected error occurred ' + JSON.stringify(result));
         }
+
+        const contextEntity = K8sKubectlService.createEntity(k8sObject);
+        context.entities.unregistered.push(contextEntity);
+        context.entities.deleted.push(contextEntity);
     }
 
     /**
