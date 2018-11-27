@@ -75,7 +75,7 @@ export class K8sCleanupService {
     private async cleanupHelmReleases(deployedHelms: string[]) {
         const allowedHelms = deployedHelms;
         const allowedPatterns = get(this.options, 'allowed.helms', []);
-        const diff = this.getDifferenceInstalled(await this.getClusterHelms(), allowedHelms)
+        const diff = this.findOrphans(await this.getClusterHelms(), allowedHelms)
             .filter((d) => {
                 for (const pattern of allowedPatterns) {
                     if (minimatch(d, pattern)) {
@@ -123,7 +123,7 @@ export class K8sCleanupService {
                 .map((object: IK8sObject) => object.metadata.name),
         ];
 
-        const diff = this.getDifferenceInstalled(cluster, allowedSecrets)
+        const diff = this.findOrphans(cluster, allowedSecrets)
             .filter((d) => {
                 for (const pattern of allowedPatterns) {
                     if (minimatch(d, pattern)) {
@@ -262,13 +262,13 @@ export class K8sCleanupService {
     }
 
     /**
-     * Return Difference
+     * Difference between all objects inside the cluster and ones that were deployed
      *
      * @param {string[]} inCluster
      * @param {string[]} deployed
      * @return {string[]}
      */
-    private getDifferenceInstalled(inCluster: string[], deployed: string[]): string[] {
+    private findOrphans(inCluster: string[], deployed: string[]): string[] {
         return difference(inCluster, deployed);
     }
 
