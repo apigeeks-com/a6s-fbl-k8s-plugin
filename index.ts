@@ -9,7 +9,9 @@ import {
     K8sApplyObjectActionHandler,
     K8sApplyTLSSecretActionHandler,
     K8sDeleteObjectActionHandler,
-    K8sGetObjectActionHandler
+    K8sGetObjectActionHandler,
+
+    K8sCleanupActionHandler
 } from "./src/handlers";
 
 const packageJson = require('../package.json');
@@ -46,6 +48,7 @@ module.exports = <IPlugin> {
       new K8sApplyTLSSecretActionHandler(),
       new K8sDeleteObjectActionHandler(),
       new K8sGetObjectActionHandler(),
+      new K8sCleanupActionHandler(),
   ],
 
   templateUtils: []
