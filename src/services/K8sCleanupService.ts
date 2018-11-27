@@ -3,19 +3,19 @@ import * as minimatch from 'minimatch';
 import {IK8sCleanupOptions, IK8sObject} from '../interfaces';
 import {K8sHelmService} from './K8sHelmService';
 import {K8sKubectlService} from './K8sKubectlService';
-import {IContextEntity} from 'fbl/dist/src/interfaces/IContext';
 import {ActionSnapshot} from 'fbl/dist/src/models';
 import {Container} from 'typedi';
+import {IContext} from 'fbl/dist/src/interfaces';
 
 export class K8sCleanupService {
     /**
      * @param {IK8sCleanupOptions} options
-     * @param {IContextEntity[]} registered
+     * @param {IContext} context
      * @param {ActionSnapshot} snapshot
      */
     constructor(
         private readonly options: IK8sCleanupOptions,
-        private readonly registered: IContextEntity[],
+        private readonly context: IContext,
         private readonly snapshot: ActionSnapshot) {
     }
 
@@ -29,7 +29,7 @@ export class K8sCleanupService {
         const deployedHelms = await this.getDeployedHelms();
         const allHelmObjects: IK8sObject[] = <IK8sObject[]>flattenDeep(
             await Promise.all(
-                deployedHelms.map(async (name) => await this.getHelms(name))
+                deployedHelms.map(async (name) => await this.getHelmsObjects(name))
             )
         );
 
@@ -90,7 +90,7 @@ export class K8sCleanupService {
         if (!this.options.dryRun) {
             await Promise.all(diff.map(async (name) => {
                 try {
-                    await Container.get(K8sHelmService).remove(name);
+                    await Container.get(K8sHelmService).remove(name, this.context);
                     this.snapshot.log(`Helm "${name}" deleted`);
                 } catch (e) {
                     this.snapshot.log(`Helm "${name}" not deleted: ${e.message}`);
@@ -145,7 +145,7 @@ export class K8sCleanupService {
                             metadata: {
                                 name,
                             }
-                        })
+                        }, this.context)
                     ;
                     this.snapshot.log(`${kind} "${name}" deleted`);
                 } catch (e) {
@@ -163,7 +163,7 @@ export class K8sCleanupService {
      * @param {string} name
      * @return {Promise<IK8sObject[]>}
      */
-    private async getHelms(name: string): Promise<IK8sObject[]> {
+    private async getHelmsObjects(name: string): Promise<IK8sObject[]> {
         return await Container.get(K8sHelmService).getHelmObjects(name);
     }
 
@@ -278,8 +278,10 @@ export class K8sCleanupService {
      * @return {Promise<string[]>}
      */
     private async getDeployedHelms(): Promise<string[]> {
-        // TODO: implement
-        return [];
+        return this.context.entities.registered
+            .filter((e => e.type === 'helm'))
+            .map(e => e.payload.name)
+        ;
     }
 
     /**
@@ -288,8 +290,7 @@ export class K8sCleanupService {
      * @return {IK8sObject[]}
      */
     private getDeployedK8sObjects(): IK8sObject[] {
-        // TODO: implement
-        return this.registered
+        return this.context.entities.registered
             .filter((e => ['Secret', 'ConfigMap', 'StorageClass', 'PersistentVolumeClaim'].indexOf(e.type) !== -1))
             .map(e => e.payload)
         ;

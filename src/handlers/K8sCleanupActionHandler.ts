@@ -58,7 +58,7 @@ export class K8sCleanupActionHandler extends ActionHandler {
      * {@inheritDoc}
      */
     async execute(options: any, context: IContext, snapshot: ActionSnapshot, parameters: IDelegatedParameters): Promise<void> {
-        const k8sCleanupService = new K8sCleanupService(options, context.entities.registered, snapshot);
+        const k8sCleanupService = new K8sCleanupService(options, context, snapshot);
 
         await k8sCleanupService.cleanup();
     }

@@ -4,9 +4,10 @@ import {TempPathsRegistry} from 'fbl/dist/src/services';
 import {Container} from 'typedi';
 import {ActionSnapshot} from 'fbl/dist/src/models';
 import {ContextUtil} from 'fbl/dist/src/utils';
-import {K8sCleanupActionHandler} from '../../src/handlers';
+import {K8sCleanupActionHandler, K8sHelmUpgradeOrInstallActionHandler} from '../../src/handlers';
 import {K8sApplyObjectActionHandler} from '../../src/handlers/kubectl';
-import {K8sKubectlService} from '../../src/services';
+import {K8sHelmService, K8sKubectlService} from '../../src/services';
+import {join} from 'path';
 
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
@@ -56,8 +57,47 @@ export class K8sCleanupActionHandlerTestSuite {
         }, context, snapshot, {});
     }
 
+    @test()
     async cleanupHelms() {
-        // TODO: implement
+        const assetsDir = join(__dirname, '../../../test/assets');
+        const context = ContextUtil.generateEmptyContext();
+        const snapshot = new ActionSnapshot('.', {}, assetsDir, 0, {});
+        const helmUpgradeOrInstallActionHandler = new K8sHelmUpgradeOrInstallActionHandler();
+
+        const optionsHelmDeployed = {
+            chart: 'helm/sample',
+            name: 'helm-cleanup-deployed'
+        };
+
+        const optionsHelmCluster = {
+            chart: 'helm/cleanup',
+            name: 'helm-cleanup-cluster'
+        };
+
+        await helmUpgradeOrInstallActionHandler.validate(optionsHelmDeployed, context, snapshot, {});
+        await helmUpgradeOrInstallActionHandler.execute(optionsHelmDeployed, context, snapshot, {});
+
+        await helmUpgradeOrInstallActionHandler.validate(optionsHelmCluster, context, snapshot, {});
+        await helmUpgradeOrInstallActionHandler.execute(optionsHelmCluster, context, snapshot, {});
+
+        context.entities.registered.splice(-1, 1);
+        assert.strictEqual(context.entities.registered.length, 1);
+
+        const actionHandler = new K8sCleanupActionHandler();
+        const cleanupOptions = {
+            namespace: 'default',
+        };
+
+        await actionHandler.validate(cleanupOptions, context, snapshot, {});
+        await actionHandler.execute(cleanupOptions, context, snapshot, {});
+
+        const objectsAfterCleanup = await Container.get(K8sHelmService).listInstalledHelms();
+
+        chai.expect(objectsAfterCleanup).to.be.an('array').that.not.includes('helm-cleanup-cluster');
+        chai.expect(objectsAfterCleanup).to.be.an('array').that.includes('helm-cleanup-deployed');
+
+        context.entities.registered.splice(-1, 1);
+        await actionHandler.execute(cleanupOptions, context, snapshot, {});
     }
 
     @test()
@@ -104,6 +144,7 @@ export class K8sCleanupActionHandlerTestSuite {
     @test()
     async cleanupPersistentVolumeClaim() {
         const applyK8sObjectActionHandler = new K8sApplyObjectActionHandler();
+
         const context = ContextUtil.generateEmptyContext();
         const snapshot = new ActionSnapshot('.', {}, '', 0, {});
 
@@ -169,9 +210,11 @@ export class K8sCleanupActionHandlerTestSuite {
     }
 
     private async applyTestObjects(deployedObject: object, clusterObject: object, kind: string) {
+        const assetsDir = join(__dirname, '../../../test/assets');
         const applyK8sObjectActionHandler = new K8sApplyObjectActionHandler();
         const context = ContextUtil.generateEmptyContext();
         const snapshot = new ActionSnapshot('.', {}, '', 0, {});
+        const snapshotHelm = new ActionSnapshot('.', {}, assetsDir, 0, {});
 
         await applyK8sObjectActionHandler.validate(deployedObject, context, snapshot, {});
         await applyK8sObjectActionHandler.execute(deployedObject, context, snapshot, {});
@@ -183,10 +226,22 @@ export class K8sCleanupActionHandlerTestSuite {
 
         assert.strictEqual(context.entities.registered.length, 1);
 
+        // install helm
+        const helmUpgradeOrInstallActionHandler = new K8sHelmUpgradeOrInstallActionHandler();
+
+        const options = {
+            chart: 'helm/cleanup',
+            name: 'helm-cleanup-test'
+        };
+
+        await helmUpgradeOrInstallActionHandler.validate(options, context, snapshotHelm, {});
+        await helmUpgradeOrInstallActionHandler.execute(options, context, snapshotHelm, {});
+
         const configMaps = await Container.get(K8sKubectlService).listObjects(kind, 'default');
 
         chai.expect(configMaps).to.be.an('array').that.includes('config-cluster');
         chai.expect(configMaps).to.be.an('array').that.includes('config-deployed');
+        chai.expect(configMaps).to.be.an('array').that.includes('helm-cleanup');
 
         const actionHandler = new K8sCleanupActionHandler();
         const cleanupOptions = {
@@ -200,6 +255,7 @@ export class K8sCleanupActionHandlerTestSuite {
 
         chai.expect(objectsAfterCleanup).to.be.an('array').that.not.includes('config-cluster');
         chai.expect(objectsAfterCleanup).to.be.an('array').that.includes('config-deployed');
+        chai.expect(objectsAfterCleanup).to.be.an('array').that.includes('helm-cleanup');
     }
 
     private async cleanupConfigMapAndSecret(kind: string) {
