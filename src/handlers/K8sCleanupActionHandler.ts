@@ -28,13 +28,20 @@ export class K8sCleanupActionHandler extends ActionHandler {
                 .min(1)
                 .items(Joi.string().required())
             ,
-            allowed: Joi.object()
-                .pattern(
-                    /\w+/,
-                    Joi.array()
+            ignored: Joi.object()
+                .keys({
+                    objects: Joi.object()
+                        .pattern(
+                            /\w+/,
+                            Joi.array()
+                                .min(1)
+                                .items(Joi.string().required())
+                        ),
+                    helms: Joi.array()
                         .min(1)
                         .items(Joi.string().required())
-                ),
+                    ,
+                })
         })
         .required()
         .options({

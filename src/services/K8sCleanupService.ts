@@ -53,7 +53,7 @@ export class K8sCleanupService {
                 allHelmObjects,
                 deployed,
                 cluster,
-                get(this.options, ['allowed', kind], [])
+                get(this.options, ['ignored', kind], [])
             );
         }
     }
@@ -63,11 +63,11 @@ export class K8sCleanupService {
      * @return {Promise<void>}
      */
     private async cleanupHelmReleases(deployedHelms: string[]) {
-        const allowedHelms = deployedHelms;
-        const allowedPatterns = get(this.options, 'allowed.helm', []);
-        const diff = this.findOrphans(await this.getClusterHelms(), allowedHelms)
+        const ignoredHelms = deployedHelms;
+        const ignoredPatterns = get(this.options, 'ignored.helms', []);
+        const diff = this.findOrphans(await this.getClusterHelms(), ignoredHelms)
             .filter((d) => {
-                for (const pattern of allowedPatterns) {
+                for (const pattern of ignoredPatterns) {
                     if (minimatch(d, pattern)) {
                         return false;
                     }
@@ -96,7 +96,7 @@ export class K8sCleanupService {
      * @param {IK8sObject[]} allHelmObjects
      * @param {string[]} deployed
      * @param {string[]} cluster
-     * @param {string[]} allowedPatterns
+     * @param {string[]} ignoredPatterns
      * @return {Promise<void>}
      */
     private async cleanupK8sObjects(
@@ -104,18 +104,18 @@ export class K8sCleanupService {
         allHelmObjects: IK8sObject[],
         deployed: string[],
         cluster: string[],
-        allowedPatterns: string[]
+        ignoredPatterns: string[]
     ) {
-        const allowedSecrets = [
+        const ignoredSecrets = [
             ...deployed,
             ...allHelmObjects
                 .filter((object: IK8sObject) => object.kind === kind)
                 .map((object: IK8sObject) => object.metadata.name),
         ];
 
-        const diff = this.findOrphans(cluster, allowedSecrets)
+        const diff = this.findOrphans(cluster, ignoredSecrets)
             .filter((d) => {
-                for (const pattern of allowedPatterns) {
+                for (const pattern of ignoredPatterns) {
                     if (minimatch(d, pattern)) {
                         return false;
                     }

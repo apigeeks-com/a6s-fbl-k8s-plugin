@@ -39,7 +39,7 @@ export class K8sCleanupActionHandlerTestSuite {
         await chai.expect(
             actionHandler.validate({
                 namespace: 'default',
-                allowed: {
+                ignored: {
                     storageClasses: [],
                 },
             }, context, snapshot, {})
@@ -246,8 +246,10 @@ export class K8sCleanupActionHandlerTestSuite {
         const actionHandler = new K8sCleanupActionHandler();
         const cleanupOptions = {
             namespace: 'default',
-            allowed: {
-                ConfigMap: ['foo-*']
+            ignored: {
+                objects: {
+                    ConfigMap: ['foo-*']
+                }
             }
         };
 
