@@ -83,13 +83,13 @@ export class K8sCleanupService {
             await Promise.all(diff.map(async (name) => {
                 try {
                     await Container.get(K8sHelmService).remove(name, this.context);
-                    this.snapshot.log(`Helm "${name}" deleted`);
+                    this.snapshot.log(`Helm release "${name}" deleted`);
                 } catch (e) {
-                    this.snapshot.log(`Helm "${name}" not deleted: ${e.message}`);
+                    this.snapshot.log(`Helm release "${name}" failed to delete: ${e.message}`, true);
                 }
             }));
         } else if (diff.length) {
-            this.snapshot.log(`Helm releases to be removed: ${diff.join(', ')}`);
+            this.snapshot.log(`Found following helm releases to be cleaned up: ${diff.join(', ')}`);
         }
     }
 
@@ -141,11 +141,11 @@ export class K8sCleanupService {
                     ;
                     this.snapshot.log(`${kind} "${name}" deleted`);
                 } catch (e) {
-                    this.snapshot.log(`${kind} "${name}" not deleted: ${e.message}`);
+                    this.snapshot.log(`${kind} "${name}" failed to delete: ${e.message}`);
                 }
             }));
         } else if (diff.length) {
-            this.snapshot.log(`${kind} to be removed: ${diff.join(', ')}`);
+            this.snapshot.log(`Found following ${kind}s to be cleaned up: ${diff.join(', ')}`);
         }
     }
 
