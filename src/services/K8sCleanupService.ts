@@ -18,7 +18,7 @@ export class K8sCleanupService {
         private readonly context: IContext,
         private readonly snapshot: ActionSnapshot
     ) {
-        this.options.kins = this.options.kins
+        this.options.kinds = this.options.kinds
             || ['Secret', 'ConfigMap', 'StorageClass', 'PersistentVolumeClaim']
         ;
     }
@@ -39,7 +39,7 @@ export class K8sCleanupService {
         await this.cleanupHelmReleases(deployedHelms);
 
         await Promise.all(
-            this.options.kins.map(async (kind: string) => {
+            this.options.kinds.map(async (kind: string) => {
                 const deployed =  this.getDeployedK8sObjects()
                     .filter(o => o.kind === kind)
                     .map(o => o.metadata.name)
@@ -199,7 +199,7 @@ export class K8sCleanupService {
      */
     private getDeployedK8sObjects(): IK8sObject[] {
         return this.context.entities.registered
-            .filter((e => this.options.kins.indexOf(e.type) !== -1))
+            .filter((e => this.options.kinds.indexOf(e.type) !== -1))
             .map(e => e.payload)
         ;
     }
