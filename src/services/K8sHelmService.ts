@@ -7,7 +7,6 @@ import {dump} from 'js-yaml';
 import {IHelmChart, IHelmDeploymentInfo, IK8sObject} from '../interfaces';
 import {FSUtil} from 'fbl/dist/src/utils';
 import {IContext, IContextEntity} from 'fbl/dist/src/interfaces';
-import {Error} from 'tslint/lib/error';
 
 @Service()
 export class K8sHelmService {
