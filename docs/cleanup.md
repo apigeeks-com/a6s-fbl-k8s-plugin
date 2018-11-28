@@ -50,10 +50,18 @@ k8s.cleanup:
 Allows to whitelist resources by name pattern. Useful to keep system objects and ones that not-managed by deployment process.
 
 ```yaml
-# Remove all resource except Secrets that match `default-*` pattern
+# Remove all resource except:
+# - Secrets that match `default-*` pattern
+# - Helm release with name "jenkins" 
 k8s.cleanup:
   namespace: default
-  allow: 
-    Secret:
-      - default-*  
+  # define patterns to ignore
+  ignore:
+    # key value pair of Object kinds and array of name patterns for that kind 
+    k8s:
+      Secret:
+        - default-*  
+    # list of release name patterns to ignore upon cleanup (keep them in cluster)
+    helm:
+      - jenkins    
 ```
