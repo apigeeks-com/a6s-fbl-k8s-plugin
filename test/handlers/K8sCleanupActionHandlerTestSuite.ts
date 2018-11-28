@@ -246,6 +246,9 @@ export class K8sCleanupActionHandlerTestSuite {
         const actionHandler = new K8sCleanupActionHandler();
         const cleanupOptions = {
             namespace: 'default',
+            allowed: {
+                ConfigMap: ['foo-*']
+            }
         };
 
         await actionHandler.validate(cleanupOptions, context, snapshot, {});

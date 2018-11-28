@@ -16,7 +16,11 @@ export class K8sCleanupService {
     constructor(
         private readonly options: IK8sCleanupOptions,
         private readonly context: IContext,
-        private readonly snapshot: ActionSnapshot) {
+        private readonly snapshot: ActionSnapshot
+    ) {
+        this.options.kinds = this.options.kinds
+            || ['Secret', 'ConfigMap', 'StorageClass', 'PersistentVolumeClaim']
+        ;
     }
 
     /**
@@ -25,7 +29,6 @@ export class K8sCleanupService {
      * @return {Promise<void>}
      */
     public async cleanup(): Promise<void> {
-
         const deployedHelms = await this.getDeployedHelms();
         const allHelmObjects: IK8sObject[] = <IK8sObject[]>flattenDeep(
             await Promise.all(
@@ -35,36 +38,25 @@ export class K8sCleanupService {
 
         await this.cleanupHelmReleases(deployedHelms);
 
-        await this.cleanupK8sObjects(
-            'ConfigMap',
-            allHelmObjects,
-            await this.getDeployedConfigMaps(),
-            await this.getClusterConfigMaps(),
-            get(this.options, 'allowed.configMaps', [])
-        );
+        await Promise.all(
+            this.options.kinds.map(async (kind: string) => {
+                const deployed =  this.getDeployedK8sObjects()
+                    .filter(o => o.kind === kind)
+                    .map(o => o.metadata.name)
+                ;
 
-        await this.cleanupK8sObjects(
-            'Secret',
-            allHelmObjects,
-            await this.getDeployedSecrets(),
-            await this.getClusterSecrets(),
-            get(this.options, 'allowed.secrets', [])
-        );
+                const cluster = await Container.get(K8sKubectlService)
+                    .listObjects(kind, this.options.namespace)
+                ;
 
-        await this.cleanupK8sObjects(
-            'PersistentVolumeClaim',
-            allHelmObjects,
-            await this.getDeployedPersistentVolumeClaims(),
-            await this.getClusterPersistentVolumeClaims(),
-            get(this.options, 'allowed.persistentVolumeClaims', [])
-        );
-
-        await this.cleanupK8sObjects(
-            'StorageClass',
-            allHelmObjects,
-            await this.getDeployedStorageClasses(),
-            await this.getClusterStorageClasses(),
-            get(this.options, 'allowed.storageClass', [])
+                await this.cleanupK8sObjects(
+                    kind,
+                    allHelmObjects,
+                    deployed,
+                    cluster,
+                    get(this.options, ['allowed', kind], [])
+                );
+            })
         );
     }
 
@@ -74,7 +66,7 @@ export class K8sCleanupService {
      */
     private async cleanupHelmReleases(deployedHelms: string[]) {
         const allowedHelms = deployedHelms;
-        const allowedPatterns = get(this.options, 'allowed.helms', []);
+        const allowedPatterns = get(this.options, 'allowed.helm', []);
         const diff = this.findOrphans(await this.getClusterHelms(), allowedHelms)
             .filter((d) => {
                 for (const pattern of allowedPatterns) {
@@ -168,54 +160,6 @@ export class K8sCleanupService {
     }
 
     /**
-     * Get deployed secrets
-     *
-     * @return {Promise<string[]>}
-     */
-    private async getDeployedSecrets(): Promise<string[]> {
-        return this.getDeployedK8sObjects()
-            .filter(o => o.kind === 'Secret')
-            .map(o => o.metadata.name)
-        ;
-    }
-
-    /**
-     * Get deployed config maps
-     *
-     * @return {Promise<string[]>}
-     */
-    private async getDeployedConfigMaps(): Promise<string[]> {
-        return this.getDeployedK8sObjects()
-            .filter(o => o.kind === 'ConfigMap')
-            .map(o => o.metadata.name)
-        ;
-    }
-
-    /**
-     * Get deployed storage classes
-     *
-     * @return {Promise<string[]>}
-     */
-    private async getDeployedStorageClasses(): Promise<string[]> {
-        return this.getDeployedK8sObjects()
-            .filter(o => o.kind === 'StorageClass')
-            .map(o => o.metadata.name)
-        ;
-    }
-
-    /**
-     * Get deployed persistent volume claims
-     *
-     * @return {Promise<string[]>}
-     */
-    private async getDeployedPersistentVolumeClaims(): Promise<string[]> {
-        return this.getDeployedK8sObjects()
-            .filter(o => o.kind === 'PersistentVolumeClaim')
-            .map(o => o.metadata.name)
-        ;
-    }
-
-    /**
      * Get installed helms in the cluster
      *
      * @return {Promise<string[]>}
@@ -224,42 +168,6 @@ export class K8sCleanupService {
         return await Container.get(K8sHelmService).listInstalledHelms() || [];
     }
 
-    /**
-     * Get installed secrets in the cluster
-     *
-     * @return {Promise<string[]>}
-     */
-    private async getClusterSecrets(): Promise<string[]> {
-        return await Container.get(K8sKubectlService).listObjects('Secret', this.options.namespace);
-    }
-
-    /**
-     * Get installed config maps in the cluster
-     *
-     * @return {Promise<string[]>}
-     */
-    private async getClusterConfigMaps(): Promise<string[]> {
-        return await Container.get(K8sKubectlService).listObjects('ConfigMap', this.options.namespace);
-    }
-
-
-    /**
-     * Get installed storage classes in the cluster
-     *
-     * @return {Promise<string[]>}
-     */
-    private async getClusterStorageClasses(): Promise<string[]> {
-        return await Container.get(K8sKubectlService).listObjects('StorageClass', this.options.namespace);
-    }
-
-    /**
-     * Get installed persistent volume claim in the cluster
-     *
-     * @return {Promise<string[]>}
-     */
-    private async getClusterPersistentVolumeClaims(): Promise<string[]> {
-        return await Container.get(K8sKubectlService).listObjects('PersistentVolumeClaim', this.options.namespace);
-    }
 
     /**
      * Difference between all objects inside the cluster and ones that were deployed
@@ -291,7 +199,7 @@ export class K8sCleanupService {
      */
     private getDeployedK8sObjects(): IK8sObject[] {
         return this.context.entities.registered
-            .filter((e => ['Secret', 'ConfigMap', 'StorageClass', 'PersistentVolumeClaim'].indexOf(e.type) !== -1))
+            .filter((e => this.options.kinds.indexOf(e.type) !== -1))
             .map(e => e.payload)
         ;
     }

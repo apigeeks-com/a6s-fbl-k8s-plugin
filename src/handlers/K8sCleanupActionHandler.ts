@@ -25,13 +25,17 @@ export class K8sCleanupActionHandler extends ActionHandler {
         .keys({
             dryRun: Joi.boolean().default(false),
             namespace: Joi.string().min(1).required(),
-            allowed: Joi.object({
-                storageClasses: Joi.array().min(1).items(Joi.string().required()),
-                persistentVolumeClaims: Joi.array().min(1).items(Joi.string().required()),
-                helms: Joi.array().min(1).items(Joi.string().required()),
-                secrets: Joi.array().min(1).items(Joi.string().required()),
-                configMaps: Joi.array().min(1).items(Joi.string().required()),
-            }),
+            kinds: Joi.array()
+                .min(1)
+                .items(Joi.string().required())
+            ,
+            allowed: Joi.object()
+                .pattern(
+                    /\w+/,
+                    Joi.array()
+                        .min(1)
+                        .items(Joi.string().required())
+                ),
         })
         .required()
         .options({
