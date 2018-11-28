@@ -56,9 +56,9 @@ Allows to whitelist resources by name pattern. Useful to keep system objects and
 k8s.cleanup:
   namespace: default
   # define patterns to ignore
-  ignore:
+  ignored:
     # key value pair of Object kinds and array of name patterns for that kind 
-    k8s:
+    objects:
       Secret:
         - default-*  
     # list of release name patterns to ignore upon cleanup (keep them in cluster)

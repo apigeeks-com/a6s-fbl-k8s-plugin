@@ -1,4 +1,4 @@
---timeout 60000
+--timeout 120000
 --ui mocha-typescript
 --require source-map-support/register
 dist/test/**/**/*.js
