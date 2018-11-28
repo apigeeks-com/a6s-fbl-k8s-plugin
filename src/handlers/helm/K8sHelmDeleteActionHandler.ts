@@ -30,6 +30,6 @@ export class K8sHelmDeleteActionHandler extends ActionHandler {
     }
 
     async execute(options: any, context: IContext, snapshot: ActionSnapshot, parameters: IDelegatedParameters): Promise<void> {
-        await Container.get(K8sHelmService).remove(options.name);
+        await Container.get(K8sHelmService).remove(options.name, context);
     }
 }

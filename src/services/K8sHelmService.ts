@@ -4,8 +4,10 @@ import {ChildProcessService, TempPathsRegistry} from 'fbl/dist/src/services';
 import {promisify} from 'util';
 import {exists, writeFile} from 'fs';
 import {dump} from 'js-yaml';
-import {IHelmChart, IHelmDeploymentInfo} from '../interfaces';
+import {IHelmChart, IHelmDeploymentInfo, IK8sObject} from '../interfaces';
 import {FSUtil} from 'fbl/dist/src/utils';
+import {IContext, IContextEntity} from 'fbl/dist/src/interfaces';
+import {Error} from 'tslint/lib/error';
 
 @Service()
 export class K8sHelmService {
@@ -49,9 +51,10 @@ export class K8sHelmService {
     /**
      * Remove helm chart
      * @param {string} name
+     * @param {IContext} context
      * @return {Promise<void>}
      */
-    async remove(name: string): Promise<void> {
+    async remove(name: string, context: IContext): Promise<void> {
         const result = await this.execHelmCommand([
             'del',
             '--purge',
@@ -61,15 +64,28 @@ export class K8sHelmService {
         if (result.code !== 0) {
             throw new Error(`Unable to delete helm, command returned non-zero exit code. Code: ${result.code}\nstderr: ${result.stderr}\nstdout: ${result.stdout}`);
         }
+
+        const contextEntity = this.createEntity(<IHelmChart>{name});
+        context.entities.unregistered.push(contextEntity);
+        context.entities.deleted.push(contextEntity);
+    }
+
+    private createEntity(helmConfig: IHelmChart): IContextEntity {
+        return <IContextEntity> {
+            type: 'helm',
+            payload: helmConfig,
+            id: helmConfig.name
+        };
     }
 
     /**
      * Update or install helm chart
      * @param {IHelmChart} config
      * @param {string} wd working directory
+     * @param context
      * @return {Promise<void>}
      */
-    async updateOrInstall(config: IHelmChart, wd: string): Promise<void> {
+    async updateOrInstall(config: IHelmChart, wd: string, context: IContext): Promise<void> {
         const args = [
             'upgrade', '--install'
         ];
@@ -115,10 +131,20 @@ export class K8sHelmService {
             args.push(config.chart);
         }
 
+        const isHelmUpdated = await this.isDeploymentExists(config.name);
         const result = await this.execHelmCommand(args);
 
         if (result.code !== 0) {
             throw new Error(`Unable to update or install helm chart, command returned non-zero exit code. Code: ${result.code}\nstderr: ${result.stderr}\nstdout: ${result.stdout}`);
+        }
+
+        const contextEntity = this.createEntity(config);
+        context.entities.registered.push(contextEntity);
+
+        if (!isHelmUpdated) {
+            context.entities.created.push(contextEntity);
+        } else {
+            context.entities.updated.push(contextEntity);
         }
     }
 

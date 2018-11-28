@@ -1,0 +1,48 @@
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: helm-cleanup
+  namespace: default
+provisioner: kubernetes.io/aws-ebs
+parameters:
+  type: gp2
+  zones: <%- parameters.aws.zone %>
+  iopsPerGB: '10'
+
+---
+
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: helm-cleanup
+  namespace: default
+spec:
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 8Gi
+  storageClassName: helm-cleanup
+
+---
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: helm-cleanup
+  namespace: default
+type: Opaque
+data:
+  username: YWRtaW4=
+  password: MWYyZDFlMmU2N2Rm
+
+---
+
+apiVersion: v1
+data:
+  lives: "3"
+kind: ConfigMap
+metadata:
+  name: helm-cleanup
+  namespace: default

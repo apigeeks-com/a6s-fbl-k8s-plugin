@@ -3,7 +3,7 @@ import * as Joi from 'joi';
 import {IContext, IActionHandlerMetadata, IDelegatedParameters} from 'fbl/dist/src/interfaces';
 import {Container} from 'typedi';
 import {HelmChart_JOI_SCHEMA} from '../../interfaces';
-import {K8sHelmService} from '../../services/K8sHelmService';
+import {K8sHelmService} from '../../services';
 
 const packageJson = require('../../../../package.json');
 
@@ -28,6 +28,6 @@ export class K8sHelmUpgradeOrInstallActionHandler extends ActionHandler {
     }
 
     async execute(options: any, context: IContext, snapshot: ActionSnapshot, parameters: IDelegatedParameters): Promise<void> {
-        await Container.get(K8sHelmService).updateOrInstall(options, snapshot.wd);
+        await Container.get(K8sHelmService).updateOrInstall(options, snapshot.wd, context);
     }
 }

@@ -23,6 +23,8 @@
     "fbl": "1.1.0",
     "joi": "14.0.4",
     "js-yaml": "3.12.0",
+    "lodash": "4.17.11",
+    "minimatch": "3.0.4",
     "reflect-metadata": "0.1.12",
     "typedi": "0.8.0"
   },
@@ -30,6 +32,8 @@
     "@types/chai": "4.1.7",
     "@types/joi": "14.0.0",
     "@types/js-yaml": "3.11.2",
+    "@types/lodash": "4.14.118",
+    "@types/minimatch": "3.0.3",
     "@types/node": "10.12.2",
     "chai": "4.2.0",
     "husky": "1.1.3",

@@ -38,6 +38,6 @@ export class K8sDeleteObjectActionHandler extends ActionHandler {
     }
 
     async execute(options: any, context: IContext, snapshot: ActionSnapshot, parameters: IDelegatedParameters): Promise<void> {
-        await Container.get(K8sKubectlService).deleteObject(options);
+        await Container.get(K8sKubectlService).deleteObject(options, context);
     }
 }
