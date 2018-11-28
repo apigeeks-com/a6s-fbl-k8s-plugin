@@ -19,7 +19,7 @@ export class K8sCleanupService {
         private readonly snapshot: ActionSnapshot
     ) {
         this.options.kinds = this.options.kinds
-            || ['Secret', 'ConfigMap', 'StorageClass', 'PersistentVolumeClaim']
+            || ['PersistentVolumeClaim', 'Secret', 'ConfigMap', 'StorageClass']
         ;
     }
 
@@ -38,26 +38,24 @@ export class K8sCleanupService {
 
         await this.cleanupHelmReleases(deployedHelms);
 
-        await Promise.all(
-            this.options.kinds.map(async (kind: string) => {
-                const deployed =  this.getDeployedK8sObjects()
-                    .filter(o => o.kind === kind)
-                    .map(o => o.metadata.name)
-                ;
+        for (const kind of this.options.kinds) {
+            const deployed =  this.getDeployedK8sObjects()
+                .filter(o => o.kind === kind)
+                .map(o => o.metadata.name)
+            ;
 
-                const cluster = await Container.get(K8sKubectlService)
-                    .listObjects(kind, this.options.namespace)
-                ;
+            const cluster = await Container.get(K8sKubectlService)
+                .listObjects(kind, this.options.namespace)
+            ;
 
-                await this.cleanupK8sObjects(
-                    kind,
-                    allHelmObjects,
-                    deployed,
-                    cluster,
-                    get(this.options, ['allowed', kind], [])
-                );
-            })
-        );
+            await this.cleanupK8sObjects(
+                kind,
+                allHelmObjects,
+                deployed,
+                cluster,
+                get(this.options, ['allowed', kind], [])
+            );
+        }
     }
 
     /**
