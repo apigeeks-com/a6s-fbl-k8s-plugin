@@ -25,7 +25,7 @@ export class K8sCleanupActionHandler extends ActionHandler {
         .keys({
             dryRun: Joi.boolean().default(false),
             namespace: Joi.string().min(1).required(),
-            abstractions: Joi.array()
+            kins: Joi.array()
                 .min(1)
                 .items(Joi.string().required())
             ,

@@ -18,7 +18,7 @@ export class K8sCleanupService {
         private readonly context: IContext,
         private readonly snapshot: ActionSnapshot
     ) {
-        this.options.abstractions = this.options.abstractions
+        this.options.kins = this.options.kins
             || ['Secret', 'ConfigMap', 'StorageClass', 'PersistentVolumeClaim']
         ;
     }
@@ -39,22 +39,22 @@ export class K8sCleanupService {
         await this.cleanupHelmReleases(deployedHelms);
 
         await Promise.all(
-            this.options.abstractions.map(async (abstraction: string) => {
+            this.options.kins.map(async (kind: string) => {
                 const deployed =  this.getDeployedK8sObjects()
-                    .filter(o => o.kind === abstraction)
+                    .filter(o => o.kind === kind)
                     .map(o => o.metadata.name)
                 ;
 
                 const cluster = await Container.get(K8sKubectlService)
-                    .listObjects(abstraction, this.options.namespace)
+                    .listObjects(kind, this.options.namespace)
                 ;
 
                 await this.cleanupK8sObjects(
-                    abstraction,
+                    kind,
                     allHelmObjects,
                     deployed,
                     cluster,
-                    get(this.options, ['allowed', abstraction], [])
+                    get(this.options, ['allowed', kind], [])
                 );
             })
         );
@@ -199,7 +199,7 @@ export class K8sCleanupService {
      */
     private getDeployedK8sObjects(): IK8sObject[] {
         return this.context.entities.registered
-            .filter((e => this.options.abstractions.indexOf(e.type) !== -1))
+            .filter((e => this.options.kins.indexOf(e.type) !== -1))
             .map(e => e.payload)
         ;
     }
