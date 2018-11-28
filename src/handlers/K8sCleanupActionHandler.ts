@@ -13,8 +13,7 @@ export class K8sCleanupActionHandler extends ActionHandler {
         id: 'a6s.k8s.cleanup',
         version: packageJson.version,
         aliases: [
-            'k8s.cleanup',
-            'cleanup',
+            'k8s.cleanup'
         ]
     };
 
@@ -23,7 +22,7 @@ export class K8sCleanupActionHandler extends ActionHandler {
      */
     private schema = Joi.object()
         .keys({
-            dryRun: Joi.boolean().default(false),
+            dryRun: Joi.boolean(),
             namespace: Joi.string().min(1).required(),
             kinds: Joi.array()
                 .min(1)
