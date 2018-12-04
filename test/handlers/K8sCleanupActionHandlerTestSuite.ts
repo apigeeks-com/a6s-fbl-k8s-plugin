@@ -117,6 +117,7 @@ export class K8sCleanupActionHandlerTestSuite {
                 kind: 'StorageClass',
                 apiVersion: 'storage.k8s.io/v1',
                 metadata: {
+                    namespace: 'default',
                     name: 'config-deployed'
                 },
                 provisioner: 'kubernetes.io/aws-ebs',
@@ -129,6 +130,7 @@ export class K8sCleanupActionHandlerTestSuite {
                 kind: 'StorageClass',
                 apiVersion: 'storage.k8s.io/v1',
                 metadata: {
+                    namespace: 'default',
                     name: 'config-cluster'
                 },
                 provisioner: 'kubernetes.io/aws-ebs',
@@ -152,6 +154,7 @@ export class K8sCleanupActionHandlerTestSuite {
             kind: 'StorageClass',
             apiVersion: 'storage.k8s.io/v1',
             metadata: {
+                namespace: 'default',
                 name: 'test-storage-class'
             },
             provisioner: 'kubernetes.io/aws-ebs',
@@ -257,7 +260,7 @@ export class K8sCleanupActionHandlerTestSuite {
         await actionHandler.execute(cleanupOptions, context, snapshot, {});
 
         const objectsAfterCleanup = await Container.get(K8sKubectlService).listObjects(kind, 'default');
-
+        
         chai.expect(objectsAfterCleanup).to.be.an('array').that.not.includes('config-cluster');
         chai.expect(objectsAfterCleanup).to.be.an('array').that.includes('config-deployed');
         chai.expect(objectsAfterCleanup).to.be.an('array').that.includes('helm-cleanup');
@@ -272,6 +275,7 @@ export class K8sCleanupActionHandlerTestSuite {
                     test: 'true'
                 },
                 metadata: {
+                    namespace: 'default',
                     name: 'config-deployed'
                 }
             },
@@ -282,6 +286,7 @@ export class K8sCleanupActionHandlerTestSuite {
                     test: 'true'
                 },
                 metadata: {
+                    namespace: 'default',
                     name: 'config-cluster'
                 }
             },

@@ -2,6 +2,7 @@ import * as Joi from 'joi';
 import {ActionHandler, ActionSnapshot} from 'fbl/dist/src/models';
 import {IContext, IActionHandlerMetadata, IDelegatedParameters} from 'fbl/dist/src/interfaces';
 import {K8sCleanupService} from '../services';
+import Container from 'typedi';
 
 const packageJson = require('../../../package.json');
 
@@ -68,8 +69,8 @@ export class K8sCleanupActionHandler extends ActionHandler {
      * {@inheritDoc}
      */
     async execute(options: any, context: IContext, snapshot: ActionSnapshot, parameters: IDelegatedParameters): Promise<void> {
-        const k8sCleanupService = new K8sCleanupService(options, context, snapshot);
+        const k8sCleanupService = Container.get(K8sCleanupService);
 
-        await k8sCleanupService.cleanup();
+        await k8sCleanupService.cleanup(options, context, snapshot);
     }
 }

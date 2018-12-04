@@ -157,8 +157,7 @@ export class K8sHelmService {
         return result.stdout
             .split('\n')
             .map(l => l.trim())
-            .filter(l => l)
-            ;
+            .filter(l => l) || [];
     }
 
     /**
