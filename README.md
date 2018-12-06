@@ -1,4 +1,4 @@
-# Kubectl and Helm wrapper plugin
+# Kubectl, Helm and Helm/K8s objects cleanup wrapper plugin
 
 A [fbl](https://www.npmjs.com/package/fbl) wrapper plugin for kubectl and helm cli utilities.
 
@@ -13,5 +13,6 @@ Available action handlers:
 
 - [kubectl](docs/kubectl.md)
 - [helm](docs/helm.md)
+- [k8s.cleanup](docs/cleanup.md)
 
  

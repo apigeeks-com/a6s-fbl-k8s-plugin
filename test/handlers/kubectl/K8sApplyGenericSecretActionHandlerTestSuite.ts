@@ -10,18 +10,14 @@ import {promisify} from 'util';
 import {writeFile} from 'fs';
 import {basename} from 'path';
 import {K8sKubectlService} from '../../../src/services';
+import {K8sKubectlBaseTestSuite} from './K8sKubectlBaseTestSuite';
 
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
 
 @suite()
-class K8sApplyGenericSecretActionHandlerTestSuite {
-    async after(): Promise<void> {
-        await Container.get(TempPathsRegistry).cleanup();
-        Container.reset();
-    }
-
+class K8sApplyGenericSecretActionHandlerTestSuite extends K8sKubectlBaseTestSuite {
     @test()
     async failValidation() {
         const actionHandler = new K8sApplyGenericSecretActionHandler();

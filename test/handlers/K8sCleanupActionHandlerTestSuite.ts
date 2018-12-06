@@ -8,13 +8,14 @@ import {K8sCleanupActionHandler, K8sHelmUpgradeOrInstallActionHandler} from '../
 import {K8sApplyObjectActionHandler} from '../../src/handlers/kubectl';
 import {K8sHelmService, K8sKubectlService} from '../../src/services';
 import {join} from 'path';
+import {K8sBaseHandlerTestSuite} from './K8sBaseHandlerTestSuite';
 
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
 
 @suite()
-export class K8sCleanupActionHandlerTestSuite {
+export class K8sCleanupActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
     async after(): Promise<void> {
         await Container.get(TempPathsRegistry).cleanup();
         Container.reset();
