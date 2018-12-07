@@ -6,14 +6,14 @@ import {ActionSnapshot} from 'fbl/dist/src/models';
 import * as assert from 'assert';
 import {Container} from 'typedi';
 import {K8sKubectlService} from '../../../src/services';
-import {K8sKubectlBaseTestSuite} from './K8sKubectlBaseTestSuite';
+import {K8sBaseHandlerTestSuite} from '../K8sBaseHandlerTestSuite';
 
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
 
 @suite()
-class K8sApplyDockerRegistrySecretActionHandlerTestSuite extends K8sKubectlBaseTestSuite {
+class K8sApplyDockerRegistrySecretActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
     @test()
     async failValidation() {
         const actionHandler = new K8sApplyDockerRegistrySecretActionHandler();

@@ -10,14 +10,14 @@ import {K8sKubectlService} from '../../../src/services';
 import {promisify} from 'util';
 import {readFile} from 'fs';
 import {join} from 'path';
-import {K8sKubectlBaseTestSuite} from './K8sKubectlBaseTestSuite';
+import {K8sBaseHandlerTestSuite} from '../K8sBaseHandlerTestSuite';
 
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
 
 @suite()
-class K8sApplyTLSSecretActionHandlerTestSuite extends K8sKubectlBaseTestSuite {
+class K8sApplyTLSSecretActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
     @test()
     async failValidation() {
         const actionHandler = new K8sApplyTLSSecretActionHandler();

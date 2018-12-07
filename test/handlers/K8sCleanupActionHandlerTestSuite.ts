@@ -16,11 +16,6 @@ chai.use(chaiAsPromised);
 
 @suite()
 export class K8sCleanupActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
-    async after(): Promise<void> {
-        await Container.get(TempPathsRegistry).cleanup();
-        Container.reset();
-    }
-
     @test()
     async failValidation() {
         const actionHandler = new K8sCleanupActionHandler();
