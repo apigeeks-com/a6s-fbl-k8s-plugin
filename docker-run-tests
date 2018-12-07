@@ -53,7 +53,7 @@ echo "-> running tests..."
 yarn test
 exit_code=$?
 
-if [[ $KIND_KEEP_CREATED_CLUSTER == 0 ]]; then
+if [[ $KIND_KEEP_GENERATED_CLUSTER == 0 ]]; then
     echo "-> removing kind cluster..."
     kind delete cluster
 fi

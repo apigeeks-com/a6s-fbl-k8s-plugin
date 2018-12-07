@@ -1,8 +1,8 @@
 import {Container} from 'typedi';
-import {TempPathsRegistry} from 'fbl/dist/src/services';
 import {K8sHelmService} from '../../../src/services';
+import {K8sBaseHandlerTestSuite} from '../K8sBaseHandlerTestSuite';
 
-export class K8sHelmBaseTestSuite {
+export class K8sHelmBaseTestSuite extends K8sBaseHandlerTestSuite  {
     async before(): Promise<void> {
         let result = await Container.get(K8sHelmService)
             .execHelmCommand(['list', '-q']);
@@ -21,10 +21,5 @@ export class K8sHelmBaseTestSuite {
                 }
             }
         }
-    }
-
-    async after(): Promise<void> {
-        await Container.get(TempPathsRegistry).cleanup();
-        Container.reset();
     }
 }
