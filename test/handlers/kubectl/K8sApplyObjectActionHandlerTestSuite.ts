@@ -4,21 +4,16 @@ import {K8sApplyObjectActionHandler} from '../../../src/handlers/kubectl';
 import {ContextUtil} from 'fbl/dist/src/utils';
 import {ActionSnapshot} from 'fbl/dist/src/models';
 import * as assert from 'assert';
-import {TempPathsRegistry} from 'fbl/dist/src/services';
 import {Container} from 'typedi';
 import {K8sKubectlService} from '../../../src/services';
+import {K8sBaseHandlerTestSuite} from '../K8sBaseHandlerTestSuite';
 
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
 
 @suite()
-class K8sApplyObjectActionHandlerTestSuite {
-    async after(): Promise<void> {
-        await Container.get(TempPathsRegistry).cleanup();
-        Container.reset();
-    }
-
+class K8sApplyObjectActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
     @test()
     async failValidation() {
         const actionHandler = new K8sApplyObjectActionHandler();
