@@ -1,7 +1,10 @@
 # Helm/K8s objects cleanup
 
 Make you cluster clean from old and unused resources. 
-Upon execution action handler looks into `entities.registered` list of K8s objects that were previously created or updated by other actions of this plugin.
+
+Upon execution action handler looks into `entities.registered` list for K8s objects and helm charts that were previously created or updated and keeps them in cluster. All other resources will be removed.
+
+Additionally, you have an option to whitelist resources by placing them into `ignored` section or manually push them into `entities.registered` section with [fbl core action](https://fbl.fireblink.com/plugins/context#action-handler-mark-entities-as-registered).
 
 **ID:** `a6s.k8s.cleanup`
 
