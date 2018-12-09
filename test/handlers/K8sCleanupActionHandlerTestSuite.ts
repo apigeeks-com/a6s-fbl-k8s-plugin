@@ -1,14 +1,15 @@
 import * as assert from 'assert';
 import {suite, test} from 'mocha-typescript';
-import {TempPathsRegistry} from 'fbl/dist/src/services';
+import {FlowService} from 'fbl/dist/src/services';
 import {Container} from 'typedi';
-import {ActionSnapshot} from 'fbl/dist/src/models';
+import {ActionSnapshot, IActionStep} from 'fbl/dist/src/models';
 import {ContextUtil} from 'fbl/dist/src/utils';
 import {K8sCleanupActionHandler, K8sHelmUpgradeOrInstallActionHandler} from '../../src/handlers';
 import {K8sApplyObjectActionHandler} from '../../src/handlers/kubectl';
 import {K8sHelmService, K8sKubectlService} from '../../src/services';
 import {join} from 'path';
 import {K8sBaseHandlerTestSuite} from './K8sBaseHandlerTestSuite';
+import {IK8sObject} from '../../src/interfaces';
 
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
@@ -206,6 +207,42 @@ export class K8sCleanupActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
             },
             'pvc'
         );
+    }
+
+    @test()
+    async dryRun() {
+        Container.get(FlowService).debug = true;
+        const applyK8sObjectActionHandler = new K8sApplyObjectActionHandler();
+        const actionHandler = new K8sCleanupActionHandler();
+        const context = ContextUtil.generateEmptyContext();
+
+        const k8sObject: IK8sObject = {
+            apiVersion: 'v1',
+            kind: 'ConfigMap',
+            metadata: {
+                name: 'dry-run-test-config-map',
+            },
+            data: {},
+        };
+
+        let snapshot = new ActionSnapshot('.', {}, '', 0, {});
+        await applyK8sObjectActionHandler.validate(k8sObject, context, snapshot, {});
+        await applyK8sObjectActionHandler.execute(k8sObject, context, snapshot, {});
+
+        snapshot = new ActionSnapshot('.', {}, '', 0, {});
+        const cleanupOptionSecret = {
+            dryRun: true,
+            namespace: 'default',
+            kinds: ['ConfigMap']
+        };
+        await actionHandler.execute(cleanupOptionSecret, context, snapshot, {});
+
+        const logs: string[] = await snapshot.getSteps()
+            .filter((step: IActionStep) => step.type === 'log')
+            .map(log => log.payload);
+
+        const lastLog = logs.pop();
+        assert(lastLog.indexOf(`Found following ConfigMaps to be cleaned up: ${k8sObject.metadata.name}`) >= 0);
     }
 
     private async applyTestObjects(deployedObject: object, clusterObject: object, kind: string) {
