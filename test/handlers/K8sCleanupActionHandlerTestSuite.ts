@@ -210,7 +210,7 @@ export class K8sCleanupActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
     }
 
     @test()
-    async checkDryRunTrue() {
+    async dryRun() {
         Container.get(FlowService).debug = true;
         const applyK8sObjectActionHandler = new K8sApplyObjectActionHandler();
         const actionHandler = new K8sCleanupActionHandler();
