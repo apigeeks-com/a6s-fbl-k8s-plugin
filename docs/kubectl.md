@@ -210,6 +210,28 @@ kubectl.delete:
 # Note any additional fields are allowed, but will be ignored
 ```
 
+## Action Handler: Bulk Delete K8s Object 
+
+**ID:** a6s.k8s.kubectl.delete.bulk
+
+**Aliases:** 
+ - k8s.kubectl.delete.bulk
+ - kubectl.delete.bulk
+ 
+**Example:**
+
+```yaml
+kubectl.delete.bulk:
+ # object type
+ kind: ObjectKind
+ # [optional] k8s namespace
+ namespace: default
+ # minimatch patterns for object names
+ names: 
+  - 'test-*'
+```
+
+
 ## Action Handler: Get K8s Object 
 
 Find K8s object and assign it to context field(s)
