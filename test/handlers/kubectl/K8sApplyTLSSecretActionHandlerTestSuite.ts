@@ -167,4 +167,42 @@ class K8sApplyTLSSecretActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
         assert.strictEqual(context.entities.registered.length, 1);
         assert.strictEqual(context.entities.created.length, 1);
     }
+
+    @test()
+    async failCertValidaion() {
+        const actionHandler = new K8sApplyTLSSecretActionHandler();
+        const context = ContextUtil.generateEmptyContext();
+        const snapshot = new ActionSnapshot('.', {}, '', 0, {});
+        const tempPathsRegistry = Container.get(TempPathsRegistry);
+        const key = await tempPathsRegistry.createTempFile();
+
+        await chai.expect(
+            actionHandler.validate({
+                name: 'test',
+                files: {
+                    cert: 'fake-cert.crt',
+                    key: key,
+                }
+            }, context, snapshot, {})
+        ).to.be.rejected;
+    }
+
+    @test()
+    async failKeyValidaion() {
+        const actionHandler = new K8sApplyTLSSecretActionHandler();
+        const context = ContextUtil.generateEmptyContext();
+        const snapshot = new ActionSnapshot('.', {}, '', 0, {});
+        const tempPathsRegistry = Container.get(TempPathsRegistry);
+        const cert = await tempPathsRegistry.createTempFile();
+
+        await chai.expect(
+            actionHandler.validate({
+                name: 'test',
+                files: {
+                    cert: cert,
+                    key: 'fake-key.key'
+                }
+            }, context, snapshot, {})
+        ).to.be.rejected;
+    }
 }
