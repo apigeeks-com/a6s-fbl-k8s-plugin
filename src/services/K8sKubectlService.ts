@@ -1,10 +1,11 @@
-import {IK8sObject} from '../interfaces';
+import * as minimatch from 'minimatch';
 import {Inject, Service} from 'typedi';
 import {IContext, IContextEntity} from 'fbl/dist/src/interfaces';
 import {ChildProcessService, TempPathsRegistry} from 'fbl/dist/src/services';
 import {promisify} from 'util';
 import {writeFile} from 'fs';
 import {dump} from 'js-yaml';
+import {IK8sBulkDelete, IK8sObject} from '../interfaces';
 
 @Service()
 export class K8sKubectlService {
@@ -44,6 +45,38 @@ export class K8sKubectlService {
             stdout: stdout.join('\n'),
             stderr: stderr.join('\n')
         };
+    }
+
+    /**
+     * Bulk delete K8s object
+     * @param {IK8sBulkDelete} options
+     * @param {IContext} context
+     * @return {Promise<void>}
+     */
+    async deleteObjectBulk(options: IK8sBulkDelete, context: IContext): Promise<void> {
+        const objects = await this.listObjects(options.kind, options.namespace);
+
+        await Promise.all(objects
+            .filter((objectName) => {
+                for (const pattern of options.names) {
+                    if (minimatch(objectName, pattern)) {
+                        return true;
+                    }
+                }
+
+                return false;
+            })
+            .map(async (objectName) => {
+                await this.deleteObject({
+                    kind: options.kind,
+                    apiVersion: 'v1',
+                    metadata: {
+                        name: objectName,
+                        namespace: options.namespace,
+                    }
+                }, context);
+            })
+        );
     }
 
     /**
@@ -131,6 +164,10 @@ export class K8sKubectlService {
         }
     }
 
+    /**
+     * @param {IK8sObject} k8sObject
+     * @return {IContextEntity}
+     */
     private static createEntity(k8sObject: IK8sObject): IContextEntity {
         return <IContextEntity> {
             type: k8sObject.kind,
