@@ -4,4 +4,5 @@ export * from './K8sApplyGenericSecretActionHandler';
 export * from './K8sApplyObjectActionHandler';
 export * from './K8sApplyTLSSecretActionHandler';
 export * from './K8sDeleteObjectActionHandler';
+export * from './K8sBulkDeleteObjectActionHandler';
 export * from './K8sGetObjectActionHandler';
