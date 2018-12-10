@@ -184,7 +184,7 @@ class K8sApplyTLSSecretActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
                     key: key,
                 }
             }, context, snapshot, {})
-        ).to.be.rejected;
+        ).to.be.rejectedWith('Unable to locate cert file for given path');
     }
 
     @test()
@@ -203,6 +203,6 @@ class K8sApplyTLSSecretActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
                     key: 'fake-key.key'
                 }
             }, context, snapshot, {})
-        ).to.be.rejected;
+        ).to.be.rejectedWith('Unable to locate key file for given path');
     }
 }
