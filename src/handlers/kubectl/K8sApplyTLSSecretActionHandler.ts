@@ -1,39 +1,36 @@
-import {ActionHandler, ActionSnapshot} from 'fbl/dist/src/models';
 import * as Joi from 'joi';
-import {IContext, IActionHandlerMetadata, IDelegatedParameters} from 'fbl/dist/src/interfaces';
-import {Container} from 'typedi';
-import {K8sKubectlService} from '../../services';
-import {IK8sObject} from '../../interfaces';
-import {FSUtil} from 'fbl/dist/src/utils';
-import {promisify} from 'util';
-import {exists} from 'fs';
+import { Container } from 'typedi';
+import { promisify } from 'util';
+import { exists } from 'fs';
+import { ActionHandler, ActionSnapshot } from 'fbl/dist/src/models';
+import { IContext, IActionHandlerMetadata, IDelegatedParameters } from 'fbl/dist/src/interfaces';
+import { FSUtil } from 'fbl/dist/src/utils';
 
-const packageJson = require('../../../../package.json');
+import { K8sKubectlService } from '../../services';
+import { IK8sObject } from '../../interfaces';
 
 export class K8sApplyTLSSecretActionHandler extends ActionHandler {
-    private static metadata = <IActionHandlerMetadata> {
+    private static metadata = <IActionHandlerMetadata>{
         id: 'a6s.k8s.kubectl.apply.Secret.tls',
-        version: packageJson.version,
-        aliases: [
-            'k8s.kubectl.apply.Secret.tls',
-            'kubectl.apply.Secret.tls',
-            'kubectl.Secret.tls'
-        ]
+        aliases: ['k8s.kubectl.apply.Secret.tls', 'kubectl.apply.Secret.tls', 'kubectl.Secret.tls'],
     };
 
     private static schema = Joi.object()
         .keys({
-            name: Joi.string().required().min(1),
+            name: Joi.string()
+                .required()
+                .min(1),
             namespace: Joi.string().min(1),
             inline: Joi.object({
                 cert: Joi.string().required(),
-                key: Joi.string().required()
+                key: Joi.string().required(),
             }),
             files: Joi.object({
                 cert: Joi.string().required(),
-                key: Joi.string().required()
-            })
-        }).xor(['inline', 'files']);
+                key: Joi.string().required(),
+            }),
+        })
+        .xor(['inline', 'files']);
 
     /* istanbul ignore next */
     getMetadata(): IActionHandlerMetadata {
@@ -44,7 +41,12 @@ export class K8sApplyTLSSecretActionHandler extends ActionHandler {
         return K8sApplyTLSSecretActionHandler.schema;
     }
 
-    async validate(options: any, context: IContext, snapshot: ActionSnapshot, parameters: IDelegatedParameters): Promise<void> {
+    async validate(
+        options: any,
+        context: IContext,
+        snapshot: ActionSnapshot,
+        parameters: IDelegatedParameters,
+    ): Promise<void> {
         await super.validate(options, context, snapshot, parameters);
 
         if (options.files) {
@@ -62,7 +64,12 @@ export class K8sApplyTLSSecretActionHandler extends ActionHandler {
         }
     }
 
-    async execute(options: any, context: IContext, snapshot: ActionSnapshot, parameters: IDelegatedParameters): Promise<void> {
+    async execute(
+        options: any,
+        context: IContext,
+        snapshot: ActionSnapshot,
+        parameters: IDelegatedParameters,
+    ): Promise<void> {
         const object: IK8sObject = {
             apiVersion: 'v1',
             kind: 'Secret',
@@ -82,8 +89,12 @@ export class K8sApplyTLSSecretActionHandler extends ActionHandler {
             object.data['tls.crt'] = new Buffer(options.inline.cert).toString('base64');
             object.data['tls.key'] = new Buffer(options.inline.key).toString('base64');
         } else {
-            object.data['tls.crt'] = (await FSUtil.readFile(FSUtil.getAbsolutePath(options.files.cert, snapshot.wd))).toString('base64');
-            object.data['tls.key'] = (await FSUtil.readFile(FSUtil.getAbsolutePath(options.files.key, snapshot.wd))).toString('base64');
+            object.data['tls.crt'] = (await FSUtil.readFile(
+                FSUtil.getAbsolutePath(options.files.cert, snapshot.wd),
+            )).toString('base64');
+            object.data['tls.key'] = (await FSUtil.readFile(
+                FSUtil.getAbsolutePath(options.files.key, snapshot.wd),
+            )).toString('base64');
         }
 
         await Container.get(K8sKubectlService).applyObject(object, context);

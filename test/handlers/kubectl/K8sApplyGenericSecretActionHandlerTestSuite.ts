@@ -1,19 +1,19 @@
-import {suite, test} from 'mocha-typescript';
-
-import {K8sApplyGenericSecretActionHandler} from '../../../src/handlers/kubectl';
-import {ContextUtil} from 'fbl/dist/src/utils';
-import {ActionSnapshot} from 'fbl/dist/src/models';
 import * as assert from 'assert';
-import {TempPathsRegistry} from 'fbl/dist/src/services';
-import {Container} from 'typedi';
-import {promisify} from 'util';
-import {writeFile} from 'fs';
-import {basename} from 'path';
-import {K8sKubectlService} from '../../../src/services';
-import {K8sBaseHandlerTestSuite} from '../K8sBaseHandlerTestSuite';
+import * as chai from 'chai';
+import * as chaiAsPromised from 'chai-as-promised';
+import { Container } from 'typedi';
+import { promisify } from 'util';
+import { writeFile } from 'fs';
+import { basename } from 'path';
+import { suite, test } from 'mocha-typescript';
+import { ContextUtil } from 'fbl/dist/src/utils';
+import { ActionSnapshot } from 'fbl/dist/src/models';
+import { TempPathsRegistry } from 'fbl/dist/src/services';
 
-const chai = require('chai');
-const chaiAsPromised = require('chai-as-promised');
+import { K8sApplyGenericSecretActionHandler } from '../../../src/handlers/kubectl';
+import { K8sKubectlService } from '../../../src/services';
+import { K8sBaseHandlerTestSuite } from '../K8sBaseHandlerTestSuite';
+
 chai.use(chaiAsPromised);
 
 @suite()
@@ -24,35 +24,53 @@ class K8sApplyGenericSecretActionHandlerTestSuite extends K8sBaseHandlerTestSuit
         const context = ContextUtil.generateEmptyContext();
         const snapshot = new ActionSnapshot('.', {}, '', 0, {});
 
+        await chai.expect(actionHandler.validate([], context, snapshot, {})).to.be.rejected;
+
         await chai.expect(
-            actionHandler.validate([], context, snapshot, {})
+            actionHandler.validate(
+                {
+                    name: 'test',
+                },
+                context,
+                snapshot,
+                {},
+            ),
         ).to.be.rejected;
 
         await chai.expect(
-            actionHandler.validate({
-                name: 'test'
-            }, context, snapshot, {})
+            actionHandler.validate(
+                {
+                    name: 'test',
+                    files: [],
+                },
+                context,
+                snapshot,
+                {},
+            ),
         ).to.be.rejected;
 
         await chai.expect(
-            actionHandler.validate({
-                name: 'test',
-                files: []
-            }, context, snapshot, {})
+            actionHandler.validate(
+                {
+                    name: 'test',
+                    inline: [],
+                },
+                context,
+                snapshot,
+                {},
+            ),
         ).to.be.rejected;
 
         await chai.expect(
-            actionHandler.validate({
-                name: 'test',
-                inline: []
-            }, context, snapshot, {})
-        ).to.be.rejected;
-
-        await chai.expect(
-            actionHandler.validate({
-                name: 'test',
-                inline: {}
-            }, context, snapshot, {})
+            actionHandler.validate(
+                {
+                    name: 'test',
+                    inline: {},
+                },
+                context,
+                snapshot,
+                {},
+            ),
         ).to.be.rejected;
     }
 
@@ -62,25 +80,40 @@ class K8sApplyGenericSecretActionHandlerTestSuite extends K8sBaseHandlerTestSuit
         const context = ContextUtil.generateEmptyContext();
         const snapshot = new ActionSnapshot('.', {}, '', 0, {});
 
-        await actionHandler.validate({
-            name: 'test',
-            files: ['test.yml']
-        }, context, snapshot, {});
+        await actionHandler.validate(
+            {
+                name: 'test',
+                files: ['test.yml'],
+            },
+            context,
+            snapshot,
+            {},
+        );
 
-        await actionHandler.validate({
-            name: 'test',
-            inline: {
-                test: 1
-            }
-        }, context, snapshot, {});
+        await actionHandler.validate(
+            {
+                name: 'test',
+                inline: {
+                    test: 1,
+                },
+            },
+            context,
+            snapshot,
+            {},
+        );
 
-        await actionHandler.validate({
-            name: 'test',
-            files: ['test.yml'],
-            inline: {
-                test: 1
-            }
-        }, context, snapshot, {});
+        await actionHandler.validate(
+            {
+                name: 'test',
+                files: ['test.yml'],
+                inline: {
+                    test: 1,
+                },
+            },
+            context,
+            snapshot,
+            {},
+        );
     }
 
     @test()
@@ -94,15 +127,20 @@ class K8sApplyGenericSecretActionHandlerTestSuite extends K8sBaseHandlerTestSuit
             namespace: 'default',
             inline: {
                 host: 'foo.bar',
-                port: 8000
-            }
+                port: 8000,
+            },
         };
 
         await actionHandler.validate(options, context, snapshot, {});
         await actionHandler.execute(options, context, snapshot, {});
 
-        const result = await Container.get(K8sKubectlService)
-            .execKubectlCommand(['get', 'secret', options.name, '-o', 'json']);
+        const result = await Container.get(K8sKubectlService).execKubectlCommand([
+            'get',
+            'secret',
+            options.name,
+            '-o',
+            'json',
+        ]);
 
         if (result.code !== 0) {
             throw new Error(`code: ${result.code};\nstdout: ${result.stdout};\nstderr: ${result.stderr}`);
@@ -111,7 +149,7 @@ class K8sApplyGenericSecretActionHandlerTestSuite extends K8sBaseHandlerTestSuit
         const secret = JSON.parse(result.stdout);
         assert.deepStrictEqual(secret.data, {
             host: new Buffer('foo.bar').toString('base64'),
-            port: new Buffer('8000').toString('base64')
+            port: new Buffer('8000').toString('base64'),
         });
 
         assert.strictEqual(context.entities.registered.length, 1);
@@ -129,14 +167,19 @@ class K8sApplyGenericSecretActionHandlerTestSuite extends K8sBaseHandlerTestSuit
 
         const options = {
             name: 'secret-generic-test-files',
-            files: [tempFile]
+            files: [tempFile],
         };
 
         await actionHandler.validate(options, context, snapshot, {});
         await actionHandler.execute(options, context, snapshot, {});
 
-        const result = await Container.get(K8sKubectlService)
-            .execKubectlCommand(['get', 'secret', options.name, '-o', 'json']);
+        const result = await Container.get(K8sKubectlService).execKubectlCommand([
+            'get',
+            'secret',
+            options.name,
+            '-o',
+            'json',
+        ]);
 
         if (result.code !== 0) {
             throw new Error(`code: ${result.code};\nstdout: ${result.stdout};\nstderr: ${result.stderr}`);
@@ -144,7 +187,7 @@ class K8sApplyGenericSecretActionHandlerTestSuite extends K8sBaseHandlerTestSuit
 
         const secret = JSON.parse(result.stdout);
         assert.deepStrictEqual(secret.data, {
-            [basename(tempFile)]: new Buffer('test=true').toString('base64')
+            [basename(tempFile)]: new Buffer('test=true').toString('base64'),
         });
 
         assert.strictEqual(context.entities.registered.length, 1);
@@ -165,15 +208,20 @@ class K8sApplyGenericSecretActionHandlerTestSuite extends K8sBaseHandlerTestSuit
             files: [tempFile],
             inline: {
                 host: 'foo.bar',
-                port: 8000
-            }
+                port: 8000,
+            },
         };
 
         await actionHandler.validate(options, context, snapshot, {});
         await actionHandler.execute(options, context, snapshot, {});
 
-        const result = await Container.get(K8sKubectlService)
-            .execKubectlCommand(['get', 'secret', options.name, '-o', 'json']);
+        const result = await Container.get(K8sKubectlService).execKubectlCommand([
+            'get',
+            'secret',
+            options.name,
+            '-o',
+            'json',
+        ]);
 
         if (result.code !== 0) {
             throw new Error(`code: ${result.code};\nstdout: ${result.stdout};\nstderr: ${result.stderr}`);
@@ -183,7 +231,7 @@ class K8sApplyGenericSecretActionHandlerTestSuite extends K8sBaseHandlerTestSuit
         assert.deepStrictEqual(secret.data, {
             [basename(tempFile)]: new Buffer('test=true').toString('base64'),
             host: new Buffer('foo.bar').toString('base64'),
-            port: new Buffer('8000').toString('base64')
+            port: new Buffer('8000').toString('base64'),
         });
 
         assert.strictEqual(context.entities.registered.length, 1);
@@ -200,15 +248,20 @@ class K8sApplyGenericSecretActionHandlerTestSuite extends K8sBaseHandlerTestSuit
             name: 'secret-generic-test-override',
             inline: {
                 host: 'foo.bar',
-                port: 8000
-            }
+                port: 8000,
+            },
         };
 
         await actionHandler.validate(options, context, snapshot, {});
         await actionHandler.execute(options, context, snapshot, {});
 
-        let result = await Container.get(K8sKubectlService)
-            .execKubectlCommand(['get', 'secret', options.name, '-o', 'json']);
+        let result = await Container.get(K8sKubectlService).execKubectlCommand([
+            'get',
+            'secret',
+            options.name,
+            '-o',
+            'json',
+        ]);
 
         if (result.code !== 0) {
             throw new Error(`code: ${result.code};\nstdout: ${result.stdout};\nstderr: ${result.stderr}`);
@@ -217,7 +270,7 @@ class K8sApplyGenericSecretActionHandlerTestSuite extends K8sBaseHandlerTestSuit
         let secret = JSON.parse(result.stdout);
         assert.deepStrictEqual(secret.data, {
             host: new Buffer('foo.bar').toString('base64'),
-            port: new Buffer('8000').toString('base64')
+            port: new Buffer('8000').toString('base64'),
         });
 
         // update secret
@@ -225,8 +278,13 @@ class K8sApplyGenericSecretActionHandlerTestSuite extends K8sBaseHandlerTestSuit
         options.inline.port = 9999;
         await actionHandler.execute(options, context, snapshot, {});
 
-        result = await Container.get(K8sKubectlService)
-            .execKubectlCommand(['get', 'secret', options.name, '-o', 'json']);
+        result = await Container.get(K8sKubectlService).execKubectlCommand([
+            'get',
+            'secret',
+            options.name,
+            '-o',
+            'json',
+        ]);
 
         if (result.code !== 0) {
             throw new Error(`code: ${result.code};\nstdout: ${result.stdout};\nstderr: ${result.stderr}`);
@@ -235,7 +293,7 @@ class K8sApplyGenericSecretActionHandlerTestSuite extends K8sBaseHandlerTestSuit
         secret = JSON.parse(result.stdout);
         assert.deepStrictEqual(secret.data, {
             host: new Buffer('foo.bar').toString('base64'),
-            port: new Buffer('9999').toString('base64')
+            port: new Buffer('9999').toString('base64'),
         });
 
         assert.strictEqual(context.entities.registered.length, 2);

@@ -1,38 +1,36 @@
-import {ActionHandler, ActionSnapshot} from 'fbl/dist/src/models';
 import * as Joi from 'joi';
-import {IContext, IActionHandlerMetadata, IDelegatedParameters} from 'fbl/dist/src/interfaces';
-import {Container} from 'typedi';
-import {K8sKubectlService} from '../../services';
-import {FSUtil} from 'fbl/dist/src/utils';
-import {IK8sObject, IK8sObject_JOI_SCHEMA} from '../../interfaces';
-import {basename} from 'path';
-import {promisify} from 'util';
-import {readFile} from 'fs';
+import { Container } from 'typedi';
+import { basename } from 'path';
+import { ActionHandler, ActionSnapshot } from 'fbl/dist/src/models';
+import { IContext, IActionHandlerMetadata, IDelegatedParameters } from 'fbl/dist/src/interfaces';
+import { FSUtil } from 'fbl/dist/src/utils';
 
-const packageJson = require('../../../../package.json');
+import { K8sKubectlService } from '../../services';
+import { IK8sObject } from '../../interfaces';
 
 export class K8sApplyGenericSecretActionHandler extends ActionHandler {
-    private static metadata = <IActionHandlerMetadata> {
+    private static metadata = <IActionHandlerMetadata>{
         id: 'a6s.k8s.kubectl.apply.Secret.generic',
-        version: packageJson.version,
         aliases: [
             'k8s.kubectl.apply.Secret.generic',
             'kubectl.apply.Secret.generic',
             'kubectl.Secret.generic',
             'kubectl.Secret',
-        ]
+        ],
     };
 
     private static schema = Joi.object()
         .keys({
-            name: Joi.string().required().min(1),
+            name: Joi.string()
+                .required()
+                .min(1),
             namespace: Joi.string().min(1),
-            files: Joi.array().min(1).items(Joi.string().required()).optional(),
+            files: Joi.array()
+                .min(1)
+                .items(Joi.string().required())
+                .optional(),
             inline: Joi.object()
-                .pattern(
-                    /[\w|\d]+/,
-                    Joi.alternatives([Joi.string(), Joi.number()]),
-                )
+                .pattern(/[\w|\d]+/, Joi.alternatives([Joi.string(), Joi.number()]))
                 .min(1)
                 .optional(),
         })
@@ -47,7 +45,12 @@ export class K8sApplyGenericSecretActionHandler extends ActionHandler {
         return K8sApplyGenericSecretActionHandler.schema;
     }
 
-    async execute(options: any, context: IContext, snapshot: ActionSnapshot, parameters: IDelegatedParameters): Promise<void> {
+    async execute(
+        options: any,
+        context: IContext,
+        snapshot: ActionSnapshot,
+        parameters: IDelegatedParameters,
+    ): Promise<void> {
         const object: IK8sObject = {
             apiVersion: 'v1',
             kind: 'Secret',
@@ -69,8 +72,9 @@ export class K8sApplyGenericSecretActionHandler extends ActionHandler {
 
         if (options.files) {
             for (const file of options.files) {
-                object.data[basename(file)] = (await FSUtil.readFile(FSUtil.getAbsolutePath(file, snapshot.wd)))
-                    .toString('base64');
+                object.data[basename(file)] = (await FSUtil.readFile(
+                    FSUtil.getAbsolutePath(file, snapshot.wd),
+                )).toString('base64');
             }
         }
 

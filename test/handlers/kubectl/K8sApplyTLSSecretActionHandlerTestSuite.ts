@@ -1,19 +1,19 @@
-import {suite, test} from 'mocha-typescript';
-
-import {K8sApplyTLSSecretActionHandler} from '../../../src/handlers/kubectl';
-import {ContextUtil} from 'fbl/dist/src/utils';
-import {ActionSnapshot} from 'fbl/dist/src/models';
 import * as assert from 'assert';
-import {TempPathsRegistry} from 'fbl/dist/src/services';
-import {Container} from 'typedi';
-import {K8sKubectlService} from '../../../src/services';
-import {promisify} from 'util';
-import {readFile} from 'fs';
-import {join} from 'path';
-import {K8sBaseHandlerTestSuite} from '../K8sBaseHandlerTestSuite';
+import * as chai from 'chai';
+import * as chaiAsPromised from 'chai-as-promised';
+import { Container } from 'typedi';
+import { promisify } from 'util';
+import { readFile } from 'fs';
+import { join } from 'path';
+import { suite, test } from 'mocha-typescript';
+import { ContextUtil } from 'fbl/dist/src/utils';
+import { ActionSnapshot } from 'fbl/dist/src/models';
+import { TempPathsRegistry } from 'fbl/dist/src/services';
 
-const chai = require('chai');
-const chaiAsPromised = require('chai-as-promised');
+import { K8sApplyTLSSecretActionHandler } from '../../../src/handlers/kubectl';
+import { K8sKubectlService } from '../../../src/services';
+import { K8sBaseHandlerTestSuite } from '../K8sBaseHandlerTestSuite';
+
 chai.use(chaiAsPromised);
 
 @suite()
@@ -24,42 +24,60 @@ class K8sApplyTLSSecretActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
         const context = ContextUtil.generateEmptyContext();
         const snapshot = new ActionSnapshot('.', {}, '', 0, {});
 
-        await chai.expect(
-            actionHandler.validate([], context, snapshot, {})
-        ).to.be.rejected;
+        await chai.expect(actionHandler.validate([], context, snapshot, {})).to.be.rejected;
 
         await chai.expect(
-            actionHandler.validate({
-                name: 'test'
-            }, context, snapshot, {})
-        ).to.be.rejected;
-
-        await chai.expect(
-            actionHandler.validate({
-                name: 'test',
-                files: []
-            }, context, snapshot, {})
-        ).to.be.rejected;
-
-        await chai.expect(
-            actionHandler.validate({
-                name: 'test',
-                inline: []
-            }, context, snapshot, {})
-        ).to.be.rejected;
-
-        await chai.expect(
-            actionHandler.validate({
-                name: 'test',
-                inline: {
-                    cert: 'inline:cert',
-                    key: 'inline:key'
+            actionHandler.validate(
+                {
+                    name: 'test',
                 },
-                files: {
-                    cert: 'cert.crt',
-                    key: 'key.key'
-                }
-            }, context, snapshot, {})
+                context,
+                snapshot,
+                {},
+            ),
+        ).to.be.rejected;
+
+        await chai.expect(
+            actionHandler.validate(
+                {
+                    name: 'test',
+                    files: [],
+                },
+                context,
+                snapshot,
+                {},
+            ),
+        ).to.be.rejected;
+
+        await chai.expect(
+            actionHandler.validate(
+                {
+                    name: 'test',
+                    inline: [],
+                },
+                context,
+                snapshot,
+                {},
+            ),
+        ).to.be.rejected;
+
+        await chai.expect(
+            actionHandler.validate(
+                {
+                    name: 'test',
+                    inline: {
+                        cert: 'inline:cert',
+                        key: 'inline:key',
+                    },
+                    files: {
+                        cert: 'cert.crt',
+                        key: 'key.key',
+                    },
+                },
+                context,
+                snapshot,
+                {},
+            ),
         ).to.be.rejected;
     }
 
@@ -69,25 +87,35 @@ class K8sApplyTLSSecretActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
         const context = ContextUtil.generateEmptyContext();
         const snapshot = new ActionSnapshot('.', {}, '', 0, {});
 
-        await actionHandler.validate({
-            name: 'test',
-            inline: {
-                cert: 'inline:cert',
-                key: 'inline:key'
-            }
-        }, context, snapshot, {});
+        await actionHandler.validate(
+            {
+                name: 'test',
+                inline: {
+                    cert: 'inline:cert',
+                    key: 'inline:key',
+                },
+            },
+            context,
+            snapshot,
+            {},
+        );
 
         const tempPathsRegistry = Container.get(TempPathsRegistry);
         const cert = await tempPathsRegistry.createTempFile();
         const key = await tempPathsRegistry.createTempFile();
 
-        await actionHandler.validate({
-            name: 'test',
-            files: {
-                cert: cert,
-                key: key
-            }
-        }, context, snapshot, {});
+        await actionHandler.validate(
+            {
+                name: 'test',
+                files: {
+                    cert: cert,
+                    key: key,
+                },
+            },
+            context,
+            snapshot,
+            {},
+        );
     }
 
     @test()
@@ -104,14 +132,20 @@ class K8sApplyTLSSecretActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
             name: 'secret-tls-test-inline',
             inline: {
                 cert: cert,
-                key: key
-            }
+                key: key,
+            },
         };
 
         await actionHandler.validate(options, context, snapshot, {});
         await actionHandler.execute(options, context, snapshot, {});
 
-        const result = await Container.get(K8sKubectlService).execKubectlCommand(['get', 'secret', options.name, '-o', 'json']);
+        const result = await Container.get(K8sKubectlService).execKubectlCommand([
+            'get',
+            'secret',
+            options.name,
+            '-o',
+            'json',
+        ]);
 
         if (result.code !== 0) {
             throw new Error(`code: ${result.code};\nstdout: ${result.stdout};\nstderr: ${result.stderr}`);
@@ -120,7 +154,7 @@ class K8sApplyTLSSecretActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
         const configMap = JSON.parse(result.stdout);
         assert.deepStrictEqual(configMap.data, {
             'tls.crt': new Buffer(cert).toString('base64'),
-            'tls.key': new Buffer(key).toString('base64')
+            'tls.key': new Buffer(key).toString('base64'),
         });
 
         assert.strictEqual(context.entities.registered.length, 1);
@@ -142,14 +176,20 @@ class K8sApplyTLSSecretActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
             namespace: 'default',
             files: {
                 cert: cert,
-                key: key
-            }
+                key: key,
+            },
         };
 
         await actionHandler.validate(options, context, snapshot, {});
         await actionHandler.execute(options, context, snapshot, {});
 
-        const result = await Container.get(K8sKubectlService).execKubectlCommand(['get', 'secret', options.name, '-o', 'json']);
+        const result = await Container.get(K8sKubectlService).execKubectlCommand([
+            'get',
+            'secret',
+            options.name,
+            '-o',
+            'json',
+        ]);
 
         if (result.code !== 0) {
             throw new Error(`code: ${result.code};\nstdout: ${result.stdout};\nstderr: ${result.stderr}`);
@@ -161,7 +201,7 @@ class K8sApplyTLSSecretActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
         const configMap = JSON.parse(result.stdout);
         assert.deepStrictEqual(configMap.data, {
             'tls.crt': new Buffer(crtContent).toString('base64'),
-            'tls.key': new Buffer(keyContent).toString('base64')
+            'tls.key': new Buffer(keyContent).toString('base64'),
         });
 
         assert.strictEqual(context.entities.registered.length, 1);

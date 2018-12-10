@@ -1,3 +1,4 @@
+export * from './IExecOutput';
 export * from './IHelmChart';
 export * from './IHelmDeploymentInfo';
 export * from './IK8sCleanupOptions';

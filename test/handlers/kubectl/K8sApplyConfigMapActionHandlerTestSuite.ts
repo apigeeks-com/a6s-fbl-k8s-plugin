@@ -1,19 +1,19 @@
-import {suite, test} from 'mocha-typescript';
-
-import {K8sApplyConfigMapActionHandler} from '../../../src/handlers/kubectl';
-import {ContextUtil} from 'fbl/dist/src/utils';
-import {ActionSnapshot} from 'fbl/dist/src/models';
 import * as assert from 'assert';
-import {TempPathsRegistry} from 'fbl/dist/src/services';
-import {Container} from 'typedi';
-import {promisify} from 'util';
-import {writeFile} from 'fs';
-import {basename} from 'path';
-import {K8sKubectlService} from '../../../src/services';
-import {K8sBaseHandlerTestSuite} from '../K8sBaseHandlerTestSuite';
+import * as chai from 'chai';
+import * as chaiAsPromised from 'chai-as-promised';
+import { Container } from 'typedi';
+import { promisify } from 'util';
+import { writeFile } from 'fs';
+import { basename } from 'path';
+import { suite, test } from 'mocha-typescript';
+import { ContextUtil } from 'fbl/dist/src/utils';
+import { ActionSnapshot } from 'fbl/dist/src/models';
+import { TempPathsRegistry } from 'fbl/dist/src/services';
 
-const chai = require('chai');
-const chaiAsPromised = require('chai-as-promised');
+import { K8sApplyConfigMapActionHandler } from '../../../src/handlers/kubectl';
+import { K8sKubectlService } from '../../../src/services';
+import { K8sBaseHandlerTestSuite } from '../K8sBaseHandlerTestSuite';
+
 chai.use(chaiAsPromised);
 
 @suite()
@@ -24,35 +24,53 @@ class K8sApplyConfigMapActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
         const context = ContextUtil.generateEmptyContext();
         const snapshot = new ActionSnapshot('.', {}, '', 0, {});
 
+        await chai.expect(actionHandler.validate([], context, snapshot, {})).to.be.rejected;
+
         await chai.expect(
-            actionHandler.validate([], context, snapshot, {})
+            actionHandler.validate(
+                {
+                    name: 'test',
+                },
+                context,
+                snapshot,
+                {},
+            ),
         ).to.be.rejected;
 
         await chai.expect(
-            actionHandler.validate({
-                name: 'test'
-            }, context, snapshot, {})
+            actionHandler.validate(
+                {
+                    name: 'test',
+                    files: [],
+                },
+                context,
+                snapshot,
+                {},
+            ),
         ).to.be.rejected;
 
         await chai.expect(
-            actionHandler.validate({
-                name: 'test',
-                files: []
-            }, context, snapshot, {})
+            actionHandler.validate(
+                {
+                    name: 'test',
+                    inline: [],
+                },
+                context,
+                snapshot,
+                {},
+            ),
         ).to.be.rejected;
 
         await chai.expect(
-            actionHandler.validate({
-                name: 'test',
-                inline: []
-            }, context, snapshot, {})
-        ).to.be.rejected;
-
-        await chai.expect(
-            actionHandler.validate({
-                name: 'test',
-                inline: {}
-            }, context, snapshot, {})
+            actionHandler.validate(
+                {
+                    name: 'test',
+                    inline: {},
+                },
+                context,
+                snapshot,
+                {},
+            ),
         ).to.be.rejected;
     }
 
@@ -62,25 +80,40 @@ class K8sApplyConfigMapActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
         const context = ContextUtil.generateEmptyContext();
         const snapshot = new ActionSnapshot('.', {}, '', 0, {});
 
-        await actionHandler.validate({
-            name: 'test',
-            files: ['test.yml']
-        }, context, snapshot, {});
+        await actionHandler.validate(
+            {
+                name: 'test',
+                files: ['test.yml'],
+            },
+            context,
+            snapshot,
+            {},
+        );
 
-        await actionHandler.validate({
-            name: 'test',
-            inline: {
-                test: 1
-            }
-        }, context, snapshot, {});
+        await actionHandler.validate(
+            {
+                name: 'test',
+                inline: {
+                    test: 1,
+                },
+            },
+            context,
+            snapshot,
+            {},
+        );
 
-        await actionHandler.validate({
-            name: 'test',
-            files: ['test.yml'],
-            inline: {
-                test: 1
-            }
-        }, context, snapshot, {});
+        await actionHandler.validate(
+            {
+                name: 'test',
+                files: ['test.yml'],
+                inline: {
+                    test: 1,
+                },
+            },
+            context,
+            snapshot,
+            {},
+        );
     }
 
     @test()
@@ -94,15 +127,20 @@ class K8sApplyConfigMapActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
             namespace: 'default',
             inline: {
                 host: 'foo.bar',
-                port: 8000
-            }
+                port: 8000,
+            },
         };
 
         await actionHandler.validate(options, context, snapshot, {});
         await actionHandler.execute(options, context, snapshot, {});
 
-        const result = await Container.get(K8sKubectlService)
-            .execKubectlCommand(['get', 'configmap', options.name, '-o', 'json']);
+        const result = await Container.get(K8sKubectlService).execKubectlCommand([
+            'get',
+            'configmap',
+            options.name,
+            '-o',
+            'json',
+        ]);
 
         if (result.code !== 0) {
             throw new Error(`code: ${result.code};\nstdout: ${result.stdout};\nstderr: ${result.stderr}`);
@@ -111,7 +149,7 @@ class K8sApplyConfigMapActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
         const configMap = JSON.parse(result.stdout);
         assert.deepStrictEqual(configMap.data, {
             host: 'foo.bar',
-            port: '8000'
+            port: '8000',
         });
 
         assert.strictEqual(context.entities.registered.length, 1);
@@ -129,14 +167,19 @@ class K8sApplyConfigMapActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
 
         const options = {
             name: 'config-map-test-files',
-            files: [tempFile]
+            files: [tempFile],
         };
 
         await actionHandler.validate(options, context, snapshot, {});
         await actionHandler.execute(options, context, snapshot, {});
 
-        const result = await Container.get(K8sKubectlService)
-            .execKubectlCommand(['get', 'configmap', options.name, '-o', 'json']);
+        const result = await Container.get(K8sKubectlService).execKubectlCommand([
+            'get',
+            'configmap',
+            options.name,
+            '-o',
+            'json',
+        ]);
 
         if (result.code !== 0) {
             throw new Error(`code: ${result.code};\nstdout: ${result.stdout};\nstderr: ${result.stderr}`);
@@ -144,7 +187,7 @@ class K8sApplyConfigMapActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
 
         const configMap = JSON.parse(result.stdout);
         assert.deepStrictEqual(configMap.data, {
-            [basename(tempFile)]: 'test=true'
+            [basename(tempFile)]: 'test=true',
         });
 
         assert.strictEqual(context.entities.registered.length, 1);
@@ -165,15 +208,20 @@ class K8sApplyConfigMapActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
             files: [tempFile],
             inline: {
                 host: 'foo.bar',
-                port: 8000
-            }
+                port: 8000,
+            },
         };
 
         await actionHandler.validate(options, context, snapshot, {});
         await actionHandler.execute(options, context, snapshot, {});
 
-        const result = await Container.get(K8sKubectlService)
-            .execKubectlCommand(['get', 'configmap', options.name, '-o', 'json']);
+        const result = await Container.get(K8sKubectlService).execKubectlCommand([
+            'get',
+            'configmap',
+            options.name,
+            '-o',
+            'json',
+        ]);
 
         if (result.code !== 0) {
             throw new Error(`code: ${result.code};\nstdout: ${result.stdout};\nstderr: ${result.stderr}`);
@@ -183,7 +231,7 @@ class K8sApplyConfigMapActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
         assert.deepStrictEqual(configMap.data, {
             [basename(tempFile)]: 'test=true',
             host: 'foo.bar',
-            port: '8000'
+            port: '8000',
         });
 
         assert.strictEqual(context.entities.registered.length, 1);
@@ -200,15 +248,20 @@ class K8sApplyConfigMapActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
             name: 'config-map-test-override',
             inline: {
                 host: 'foo.bar',
-                port: 8000
-            }
+                port: 8000,
+            },
         };
 
         await actionHandler.validate(options, context, snapshot, {});
         await actionHandler.execute(options, context, snapshot, {});
 
-        let result = await Container.get(K8sKubectlService)
-            .execKubectlCommand(['get', 'configmap', options.name, '-o', 'json']);
+        let result = await Container.get(K8sKubectlService).execKubectlCommand([
+            'get',
+            'configmap',
+            options.name,
+            '-o',
+            'json',
+        ]);
 
         if (result.code !== 0) {
             throw new Error(`code: ${result.code};\nstdout: ${result.stdout};\nstderr: ${result.stderr}`);
@@ -217,7 +270,7 @@ class K8sApplyConfigMapActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
         let configMap = JSON.parse(result.stdout);
         assert.deepStrictEqual(configMap.data, {
             host: 'foo.bar',
-            port: '8000'
+            port: '8000',
         });
 
         // update config map
@@ -225,7 +278,13 @@ class K8sApplyConfigMapActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
         options.inline.port = 9999;
         await actionHandler.execute(options, context, snapshot, {});
 
-        result = await Container.get(K8sKubectlService).execKubectlCommand(['get', 'configmap', options.name, '-o', 'json']);
+        result = await Container.get(K8sKubectlService).execKubectlCommand([
+            'get',
+            'configmap',
+            options.name,
+            '-o',
+            'json',
+        ]);
 
         if (result.code !== 0) {
             throw new Error(`code: ${result.code};\nstdout: ${result.stdout};\nstderr: ${result.stderr}`);
@@ -234,7 +293,7 @@ class K8sApplyConfigMapActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
         configMap = JSON.parse(result.stdout);
         assert.deepStrictEqual(configMap.data, {
             host: 'foo.bar',
-            port: '9999'
+            port: '9999',
         });
 
         assert.strictEqual(context.entities.registered.length, 2);

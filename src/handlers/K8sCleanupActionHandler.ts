@@ -1,8 +1,8 @@
 import * as Joi from 'joi';
-import {ActionHandler, ActionSnapshot} from 'fbl/dist/src/models';
-import {IContext, IActionHandlerMetadata, IDelegatedParameters} from 'fbl/dist/src/interfaces';
-import {K8sCleanupService} from '../services';
 import Container from 'typedi';
+import { ActionHandler, ActionSnapshot } from 'fbl/dist/src/models';
+import { IContext, IActionHandlerMetadata, IDelegatedParameters } from 'fbl/dist/src/interfaces';
+import { K8sCleanupService } from '../services';
 
 const packageJson = require('../../../package.json');
 
@@ -10,12 +10,10 @@ export class K8sCleanupActionHandler extends ActionHandler {
     /**
      * {@inheritDoc}
      */
-    private metadata = <IActionHandlerMetadata> {
+    private metadata = <IActionHandlerMetadata>{
         id: 'a6s.k8s.cleanup',
         version: packageJson.version,
-        aliases: [
-            'k8s.cleanup'
-        ]
+        aliases: ['k8s.cleanup'],
     };
 
     /**
@@ -24,31 +22,28 @@ export class K8sCleanupActionHandler extends ActionHandler {
     private schema = Joi.object()
         .keys({
             dryRun: Joi.boolean(),
-            namespace: Joi.string().min(1).required(),
+            namespace: Joi.string()
+                .min(1)
+                .required(),
             kinds: Joi.array()
                 .min(1)
-                .items(Joi.string().required())
-            ,
-            ignored: Joi.object()
-                .keys({
-                    objects: Joi.object()
-                        .pattern(
-                            /\w+/,
-                            Joi.array()
-                                .min(1)
-                                .items(Joi.string().required())
-                        ),
-                    helms: Joi.array()
+                .items(Joi.string().required()),
+            ignored: Joi.object().keys({
+                objects: Joi.object().pattern(
+                    /\w+/,
+                    Joi.array()
                         .min(1)
-                        .items(Joi.string().required())
-                    ,
-                })
+                        .items(Joi.string().required()),
+                ),
+                helms: Joi.array()
+                    .min(1)
+                    .items(Joi.string().required()),
+            }),
         })
         .required()
         .options({
             abortEarly: true,
-        })
-    ;
+        });
 
     /**
      * {@inheritDoc}
@@ -68,7 +63,12 @@ export class K8sCleanupActionHandler extends ActionHandler {
     /**
      * {@inheritDoc}
      */
-    async execute(options: any, context: IContext, snapshot: ActionSnapshot, parameters: IDelegatedParameters): Promise<void> {
+    async execute(
+        options: any,
+        context: IContext,
+        snapshot: ActionSnapshot,
+        parameters: IDelegatedParameters,
+    ): Promise<void> {
         const k8sCleanupService = Container.get(K8sCleanupService);
 
         await k8sCleanupService.cleanup(options, context, snapshot);

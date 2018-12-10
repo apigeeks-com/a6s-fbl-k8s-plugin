@@ -1,32 +1,35 @@
-import {ActionHandler, ActionSnapshot} from 'fbl/dist/src/models';
 import * as Joi from 'joi';
-import {IContext, IActionHandlerMetadata, IDelegatedParameters} from 'fbl/dist/src/interfaces';
-import {Container} from 'typedi';
-import {K8sKubectlService} from '../../services';
+import { Container } from 'typedi';
+import { ActionHandler, ActionSnapshot } from 'fbl/dist/src/models';
+import { IContext, IActionHandlerMetadata, IDelegatedParameters } from 'fbl/dist/src/interfaces';
 
-const packageJson = require('../../../../package.json');
+import { K8sKubectlService } from '../../services';
 
 export class K8sDeleteObjectActionHandler extends ActionHandler {
-    private static metadata = <IActionHandlerMetadata> {
+    private static metadata = <IActionHandlerMetadata>{
         id: 'a6s.k8s.kubectl.delete',
-        version: packageJson.version,
-        aliases: [
-            'k8s.kubectl.delete',
-            'kubectl.delete'
-        ]
+        aliases: ['k8s.kubectl.delete', 'kubectl.delete'],
     };
 
     private static schema = Joi.object({
-        kind: Joi.string().min(1).required(),
+        kind: Joi.string()
+            .min(1)
+            .required(),
         metadata: Joi.object({
-            name: Joi.string().min(1).required(),
-            namespace: Joi.string().min(1)
-        }).required().options({
-            allowUnknown: true
+            name: Joi.string()
+                .min(1)
+                .required(),
+            namespace: Joi.string().min(1),
         })
-    }).required().options({
-        allowUnknown: true
-    });
+            .required()
+            .options({
+                allowUnknown: true,
+            }),
+    })
+        .required()
+        .options({
+            allowUnknown: true,
+        });
 
     /* istanbul ignore next */
     getMetadata(): IActionHandlerMetadata {
@@ -37,7 +40,12 @@ export class K8sDeleteObjectActionHandler extends ActionHandler {
         return K8sDeleteObjectActionHandler.schema;
     }
 
-    async execute(options: any, context: IContext, snapshot: ActionSnapshot, parameters: IDelegatedParameters): Promise<void> {
+    async execute(
+        options: any,
+        context: IContext,
+        snapshot: ActionSnapshot,
+        parameters: IDelegatedParameters,
+    ): Promise<void> {
         await Container.get(K8sKubectlService).deleteObject(options, context);
     }
 }

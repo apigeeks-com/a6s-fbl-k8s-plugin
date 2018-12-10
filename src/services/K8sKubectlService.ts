@@ -1,15 +1,15 @@
 import * as minimatch from 'minimatch';
-import {Inject, Service} from 'typedi';
-import {IContext, IContextEntity} from 'fbl/dist/src/interfaces';
-import {ChildProcessService, TempPathsRegistry} from 'fbl/dist/src/services';
-import {promisify} from 'util';
-import {writeFile} from 'fs';
-import {dump} from 'js-yaml';
-import {IK8sBulkDelete, IK8sObject} from '../interfaces';
+import { Inject, Service } from 'typedi';
+import { promisify } from 'util';
+import { writeFile } from 'fs';
+import { dump } from 'js-yaml';
+import { IContext, IContextEntity } from 'fbl/dist/src/interfaces';
+import { ChildProcessService, TempPathsRegistry } from 'fbl/dist/src/services';
+
+import { IK8sBulkDelete, IK8sObject, IExecOutput } from '../interfaces';
 
 @Service()
 export class K8sKubectlService {
-
     @Inject(() => ChildProcessService)
     private childProcessService: ChildProcessService;
 
@@ -20,30 +20,25 @@ export class K8sKubectlService {
      * Execute "helm" command
      * @param {string[]} args
      * @param {string} wd
-     * @return {Promise<{code: number; stdout: string; stderr: string}>}
+     * @return {Promise<IExecOutput>}
      */
-    async execKubectlCommand(args: string[], wd?: string): Promise<{code: number, stdout: string, stderr: string}> {
+    async execKubectlCommand(args: string[], wd?: string): Promise<IExecOutput> {
         const stdout: string[] = [];
         const stderr: string[] = [];
 
-        const code = await this.childProcessService.exec(
-            'kubectl',
-            args,
-            wd || '.',
-            {
-                stdout: (chunk: any) => {
-                    stdout.push(chunk.toString().trim());
-                },
-                stderr: (chunk: any) => {
-                    stderr.push(chunk.toString().trim());
-                }
-            }
-        );
+        const code = await this.childProcessService.exec('kubectl', args, wd || '.', {
+            stdout: (chunk: any) => {
+                stdout.push(chunk.toString().trim());
+            },
+            stderr: (chunk: any) => {
+                stderr.push(chunk.toString().trim());
+            },
+        });
 
         return {
             code,
             stdout: stdout.join('\n'),
-            stderr: stderr.join('\n')
+            stderr: stderr.join('\n'),
         };
     }
 
@@ -56,26 +51,30 @@ export class K8sKubectlService {
     async deleteObjectBulk(options: IK8sBulkDelete, context: IContext): Promise<void> {
         const objects = await this.listObjects(options.kind, options.namespace);
 
-        await Promise.all(objects
-            .filter((objectName) => {
-                for (const pattern of options.names) {
-                    if (minimatch(objectName, pattern)) {
-                        return true;
+        await Promise.all(
+            objects
+                .filter(objectName => {
+                    for (const pattern of options.names) {
+                        if (minimatch(objectName, pattern)) {
+                            return true;
+                        }
                     }
-                }
 
-                return false;
-            })
-            .map(async (objectName) => {
-                await this.deleteObject({
-                    kind: options.kind,
-                    apiVersion: 'v1',
-                    metadata: {
-                        name: objectName,
-                        namespace: options.namespace,
-                    }
-                }, context);
-            })
+                    return false;
+                })
+                .map(async objectName => {
+                    await this.deleteObject(
+                        {
+                            kind: options.kind,
+                            apiVersion: 'v1',
+                            metadata: {
+                                name: objectName,
+                                namespace: options.namespace,
+                            },
+                        },
+                        context,
+                    );
+                }),
         );
     }
 
@@ -86,11 +85,7 @@ export class K8sKubectlService {
      * @return {Promise<void>}
      */
     async deleteObject(k8sObject: IK8sObject, context: IContext): Promise<void> {
-        const args = [
-            'delete',
-            k8sObject.kind,
-            k8sObject.metadata.name
-        ];
+        const args = ['delete', k8sObject.kind, k8sObject.metadata.name];
 
         if (k8sObject.metadata.namespace) {
             args.push('-n', k8sObject.metadata.namespace);
@@ -117,14 +112,13 @@ export class K8sKubectlService {
         const tmpFile = await this.tempPathsRegistry.createTempFile(false, '.yml');
         await promisify(writeFile)(tmpFile, dump(k8sObject), 'utf8');
 
-        const result = await this.execKubectlCommand([
-            'create',
-            '-f', tmpFile
-        ]);
+        const result = await this.execKubectlCommand(['create', '-f', tmpFile]);
 
         if (result.code !== 0) {
             throw new Error(
-                `Unable to create K8s object with name: ${k8sObject.metadata.name} and kind: ${k8sObject.kind} Error: ${result.stderr}`
+                `Unable to create K8s object with name: ${k8sObject.metadata.name} and kind: ${k8sObject.kind} Error: ${
+                    result.stderr
+                }`,
             );
         }
 
@@ -143,14 +137,13 @@ export class K8sKubectlService {
         const tmpFile = await this.tempPathsRegistry.createTempFile(false, '.yml');
         await promisify(writeFile)(tmpFile, dump(k8sObject), 'utf8');
 
-        const result = await this.execKubectlCommand([
-            'apply',
-            '-f', tmpFile
-        ]);
+        const result = await this.execKubectlCommand(['apply', '-f', tmpFile]);
 
         if (result.code !== 0) {
             throw new Error(
-                `Unable to apply K8s object with name: ${k8sObject.metadata.name} and kind: ${k8sObject.kind} Error: ${result.stderr}`
+                `Unable to apply K8s object with name: ${k8sObject.metadata.name} and kind: ${k8sObject.kind} Error: ${
+                    result.stderr
+                }`,
             );
         }
 
@@ -169,10 +162,10 @@ export class K8sKubectlService {
      * @return {IContextEntity}
      */
     private static createEntity(k8sObject: IK8sObject): IContextEntity {
-        return <IContextEntity> {
+        return <IContextEntity>{
             type: k8sObject.kind,
             payload: k8sObject,
-            id: k8sObject.metadata.name
+            id: k8sObject.metadata.name,
         };
     }
 
@@ -182,19 +175,18 @@ export class K8sKubectlService {
      * @returns {Promise<any>}
      */
     async getObject(k8sObject: IK8sObject): Promise<any> {
-        const result = await this.execKubectlCommand([
-            'get',
-            k8sObject.kind,
-            k8sObject.metadata.name,
-            '-o', 'json'
-        ]);
+        const result = await this.execKubectlCommand(['get', k8sObject.kind, k8sObject.metadata.name, '-o', 'json']);
 
         if (result.stderr.trim().indexOf('Error from server (NotFound)') === 0) {
             throw new Error(`Object ${k8sObject.kind} with name ${k8sObject.metadata.name} not found`);
         }
 
         if (result.code) {
-            throw new Error(`Unexpected error occurred upon getting object ${k8sObject.kind} with name ${k8sObject.metadata.name}. ${result.stderr.trim()}`);
+            throw new Error(
+                `Unexpected error occurred upon getting object ${k8sObject.kind} with name ${
+                    k8sObject.metadata.name
+                }. ${result.stderr.trim()}`,
+            );
         }
 
         if (result.stdout) {
@@ -224,7 +216,12 @@ export class K8sKubectlService {
 
         return result.stdout
             .split('\n')
-            .map(l => l.trim().split('/').pop())
+            .map(l =>
+                l
+                    .trim()
+                    .split('/')
+                    .pop(),
+            )
             .filter(l => l);
     }
 }
