@@ -1,6 +1,6 @@
 import {suite, test} from 'mocha-typescript';
 
-import {K8sApplyObjectActionHandler, K8sBulkDeleteObjectActionHandler} from '../../../src/handlers/kubectl';
+import {K8sApplyObjectActionHandler, K8sDeleteBulkActionHandler} from '../../../src/handlers/kubectl';
 import {ContextUtil} from 'fbl/dist/src/utils';
 import {ActionSnapshot} from 'fbl/dist/src/models';
 import {Container} from 'typedi';
@@ -12,10 +12,10 @@ const chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
 
 @suite()
-class K8sBulkDeleteObjectActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
+class K8sDeleteBulkActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
     @test()
     async failValidation() {
-        const actionHandler = new K8sBulkDeleteObjectActionHandler();
+        const actionHandler = new K8sDeleteBulkActionHandler();
         const context = ContextUtil.generateEmptyContext();
         const snapshot = new ActionSnapshot('.', {}, '', 0, {});
 
@@ -45,7 +45,7 @@ class K8sBulkDeleteObjectActionHandlerTestSuite extends K8sBaseHandlerTestSuite 
 
     @test()
     async passValidation() {
-        const actionHandler = new K8sBulkDeleteObjectActionHandler();
+        const actionHandler = new K8sDeleteBulkActionHandler();
         const context = ContextUtil.generateEmptyContext();
         const snapshot = new ActionSnapshot('.', {}, '', 0, {});
 
@@ -58,7 +58,7 @@ class K8sBulkDeleteObjectActionHandlerTestSuite extends K8sBaseHandlerTestSuite 
     @test()
     async deleteObject(): Promise<void> {
         const applyActionHandler = new K8sApplyObjectActionHandler();
-        const deleteActionHandler = new K8sBulkDeleteObjectActionHandler();
+        const deleteActionHandler = new K8sDeleteBulkActionHandler();
         const context = ContextUtil.generateEmptyContext();
         const snapshot = new ActionSnapshot('.', {}, '', 0, {});
 

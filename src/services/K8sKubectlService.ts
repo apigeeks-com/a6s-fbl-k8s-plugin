@@ -48,12 +48,12 @@ export class K8sKubectlService {
     }
 
     /**
-     * Bulk delete K8s object
+     * Bulk removal of K8s objects
      * @param {IK8sBulkDelete} options
      * @param {IContext} context
      * @return {Promise<void>}
      */
-    async deleteObjectBulk(options: IK8sBulkDelete, context: IContext): Promise<void> {
+    async deleteObjects(options: IK8sBulkDelete, context: IContext): Promise<void> {
         const objects = await this.listObjects(options.kind, options.namespace);
 
         await Promise.all(objects
