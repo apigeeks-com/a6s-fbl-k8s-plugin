@@ -4,8 +4,6 @@
   "description": "fbl wrapper plugin for helm and kubectl cli utilities",
   "main": "dist/index.js",
   "scripts": {
-    "tsc": "tsc",
-    "nyc": "nyc",
     "commit": "npx git-cz",
     "rimraf": "rimraf",
     "depcheck": "yarn-check",
