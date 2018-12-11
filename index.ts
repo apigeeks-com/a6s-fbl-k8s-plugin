@@ -8,7 +8,7 @@ import {
     K8sApplyObjectActionHandler,
     K8sApplyTLSSecretActionHandler,
     K8sDeleteObjectActionHandler,
-    K8sBulkDeleteObjectActionHandler,
+    K8sDeleteBulkActionHandler,
     K8sGetObjectActionHandler,
     K8sCleanupActionHandler,
 } from './src/handlers';
@@ -43,10 +43,9 @@ module.exports = <IPlugin>{
         new K8sApplyObjectActionHandler(),
         new K8sApplyTLSSecretActionHandler(),
         new K8sDeleteObjectActionHandler(),
-        new K8sBulkDeleteObjectActionHandler(),
+        new K8sDeleteBulkActionHandler(),
         new K8sGetObjectActionHandler(),
         new K8sCleanupActionHandler(),
     ],
-
     templateUtils: [],
 };

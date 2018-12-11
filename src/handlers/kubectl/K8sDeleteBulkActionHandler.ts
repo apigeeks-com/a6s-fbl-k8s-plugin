@@ -6,7 +6,7 @@ import { IContext, IActionHandlerMetadata, IDelegatedParameters } from 'fbl/dist
 import { K8sKubectlService } from '../../services';
 import { IK8sBulkDelete } from '../../interfaces';
 
-export class K8sBulkDeleteObjectActionHandler extends ActionHandler {
+export class K8sDeleteBulkActionHandler extends ActionHandler {
     private static metadata = <IActionHandlerMetadata>{
         id: 'a6s.k8s.kubectl.delete.bulk',
         aliases: ['k8s.kubectl.delete.bulk', 'kubectl.delete.bulk'],
@@ -29,11 +29,11 @@ export class K8sBulkDeleteObjectActionHandler extends ActionHandler {
 
     /* istanbul ignore next */
     getMetadata(): IActionHandlerMetadata {
-        return K8sBulkDeleteObjectActionHandler.metadata;
+        return K8sDeleteBulkActionHandler.metadata;
     }
 
     getValidationSchema(): Joi.SchemaLike | null {
-        return K8sBulkDeleteObjectActionHandler.schema;
+        return K8sDeleteBulkActionHandler.schema;
     }
 
     async execute(
@@ -42,6 +42,6 @@ export class K8sBulkDeleteObjectActionHandler extends ActionHandler {
         snapshot: ActionSnapshot,
         parameters: IDelegatedParameters,
     ): Promise<void> {
-        await Container.get(K8sKubectlService).deleteObjectBulk(options, context);
+        await Container.get(K8sKubectlService).deleteObjects(options, context);
     }
 }
