@@ -1,15 +1,15 @@
-import {suite, test} from 'mocha-typescript';
-
-import {K8sApplyObjectActionHandler, K8sGetObjectActionHandler} from '../../../src/handlers/kubectl';
-import {ContextUtil} from 'fbl/dist/src/utils';
-import {ActionSnapshot} from 'fbl/dist/src/models';
+import { suite, test } from 'mocha-typescript';
+import * as chai from 'chai';
+import * as chaiAsPromised from 'chai-as-promised';
 import * as assert from 'assert';
-import {Container} from 'typedi';
-import {K8sKubectlService} from '../../../src/services';
-import {K8sBaseHandlerTestSuite} from '../K8sBaseHandlerTestSuite';
+import { Container } from 'typedi';
+import { ContextUtil } from 'fbl/dist/src/utils';
+import { ActionSnapshot } from 'fbl/dist/src/models';
 
-const chai = require('chai');
-const chaiAsPromised = require('chai-as-promised');
+import { K8sApplyObjectActionHandler, K8sGetObjectActionHandler } from '../../../src/handlers/kubectl';
+import { K8sKubectlService } from '../../../src/services';
+import { K8sBaseHandlerTestSuite } from '../K8sBaseHandlerTestSuite';
+
 chai.use(chaiAsPromised);
 
 @suite()
@@ -20,45 +20,68 @@ class K8sGetObjectActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
         const context = ContextUtil.generateEmptyContext();
         const snapshot = new ActionSnapshot('.', {}, '', 0, {});
 
+        await chai.expect(actionHandler.validate([], context, snapshot, {})).to.be.rejected;
+
         await chai.expect(
-            actionHandler.validate([], context, snapshot, {})
+            actionHandler.validate(
+                {
+                    name: 'test',
+                },
+                context,
+                snapshot,
+                {},
+            ),
         ).to.be.rejected;
 
         await chai.expect(
-            actionHandler.validate({
-                name: 'test'
-            }, context, snapshot, {})
+            actionHandler.validate(
+                {
+                    kind: 'CustomObject',
+                },
+                context,
+                snapshot,
+                {},
+            ),
         ).to.be.rejected;
 
         await chai.expect(
-            actionHandler.validate({
-                kind: 'CustomObject',
-            }, context, snapshot, {})
+            actionHandler.validate(
+                {
+                    kind: 'CustomObject',
+                    metadata: {},
+                },
+                context,
+                snapshot,
+                {},
+            ),
         ).to.be.rejected;
 
         await chai.expect(
-            actionHandler.validate({
-                kind: 'CustomObject',
-                metadata: {}
-            }, context, snapshot, {})
+            actionHandler.validate(
+                {
+                    kind: 'CustomObject',
+                    metadata: {
+                        name: 'test',
+                    },
+                },
+                context,
+                snapshot,
+                {},
+            ),
         ).to.be.rejected;
 
         await chai.expect(
-            actionHandler.validate({
-                kind: 'CustomObject',
-                metadata: {
-                    name: 'test'
-                }
-            }, context, snapshot, {})
-        ).to.be.rejected;
-
-        await chai.expect(
-            actionHandler.validate({
-                kind: 'CustomObject',
-                metadata: {
-                    name: 'test'
-                }
-            }, context, snapshot, {})
+            actionHandler.validate(
+                {
+                    kind: 'CustomObject',
+                    metadata: {
+                        name: 'test',
+                    },
+                },
+                context,
+                snapshot,
+                {},
+            ),
         ).to.be.rejected;
     }
 
@@ -68,15 +91,20 @@ class K8sGetObjectActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
         const context = ContextUtil.generateEmptyContext();
         const snapshot = new ActionSnapshot('.', {}, '', 0, {});
 
-        await actionHandler.validate({
-            kind: 'CustomObject',
-            metadata: {
-                name: 'test'
+        await actionHandler.validate(
+            {
+                kind: 'CustomObject',
+                metadata: {
+                    name: 'test',
+                },
+                assignObjectTo: {
+                    ctx: '$.test',
+                },
             },
-            assignObjectTo: {
-                ctx: '$.test'
-            }
-        }, context, snapshot, {});
+            context,
+            snapshot,
+            {},
+        );
     }
 
     @test()
@@ -90,18 +118,23 @@ class K8sGetObjectActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
             kind: 'ConfigMap',
             apiVersion: 'v1',
             data: {
-                test: 'true'
+                test: 'true',
             },
             metadata: {
-                name: 'delete-obj-test'
-            }
+                name: 'delete-obj-test',
+            },
         };
 
         await applyActionHandler.validate(obj, context, snapshot, {});
         await applyActionHandler.execute(obj, context, snapshot, {});
 
-        const result = await Container.get(K8sKubectlService)
-            .execKubectlCommand(['get', obj.kind, obj.metadata.name, '-o', 'json']);
+        const result = await Container.get(K8sKubectlService).execKubectlCommand([
+            'get',
+            obj.kind,
+            obj.metadata.name,
+            '-o',
+            'json',
+        ]);
 
         if (result.code !== 0) {
             throw new Error(`code: ${result.code};\nstdout: ${result.stdout};\nstderr: ${result.stderr}`);
@@ -114,12 +147,12 @@ class K8sGetObjectActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
         const options = {
             kind: obj.kind,
             metadata: {
-                name: obj.metadata.name
+                name: obj.metadata.name,
             },
             assignObjectTo: {
                 ctx: '$.test',
-                secrets: '$.test'
-            }
+                secrets: '$.test',
+            },
         };
         await getActionHandler.validate(options, context, snapshot, {});
         await getActionHandler.execute(options, context, snapshot, {});

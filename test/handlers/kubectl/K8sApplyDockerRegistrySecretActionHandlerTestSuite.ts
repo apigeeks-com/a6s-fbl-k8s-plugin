@@ -1,15 +1,15 @@
-import {suite, test} from 'mocha-typescript';
-
-import {K8sApplyDockerRegistrySecretActionHandler} from '../../../src/handlers/kubectl';
-import {ContextUtil} from 'fbl/dist/src/utils';
-import {ActionSnapshot} from 'fbl/dist/src/models';
 import * as assert from 'assert';
-import {Container} from 'typedi';
-import {K8sKubectlService} from '../../../src/services';
-import {K8sBaseHandlerTestSuite} from '../K8sBaseHandlerTestSuite';
+import * as chai from 'chai';
+import * as chaiAsPromised from 'chai-as-promised';
+import { Container } from 'typedi';
+import { suite, test } from 'mocha-typescript';
+import { ContextUtil } from 'fbl/dist/src/utils';
+import { ActionSnapshot } from 'fbl/dist/src/models';
 
-const chai = require('chai');
-const chaiAsPromised = require('chai-as-promised');
+import { K8sApplyDockerRegistrySecretActionHandler } from '../../../src/handlers/kubectl';
+import { K8sKubectlService } from '../../../src/services';
+import { K8sBaseHandlerTestSuite } from '../K8sBaseHandlerTestSuite';
+
 chai.use(chaiAsPromised);
 
 @suite()
@@ -20,37 +20,55 @@ class K8sApplyDockerRegistrySecretActionHandlerTestSuite extends K8sBaseHandlerT
         const context = ContextUtil.generateEmptyContext();
         const snapshot = new ActionSnapshot('.', {}, '', 0, {});
 
+        await chai.expect(actionHandler.validate([], context, snapshot, {})).to.be.rejected;
+
         await chai.expect(
-            actionHandler.validate([], context, snapshot, {})
+            actionHandler.validate(
+                {
+                    name: 'test',
+                },
+                context,
+                snapshot,
+                {},
+            ),
         ).to.be.rejected;
 
         await chai.expect(
-            actionHandler.validate({
-                name: 'test'
-            }, context, snapshot, {})
+            actionHandler.validate(
+                {
+                    name: 'test',
+                    files: [],
+                },
+                context,
+                snapshot,
+                {},
+            ),
         ).to.be.rejected;
 
         await chai.expect(
-            actionHandler.validate({
-                name: 'test',
-                files: []
-            }, context, snapshot, {})
+            actionHandler.validate(
+                {
+                    name: 'test',
+                    inline: [],
+                },
+                context,
+                snapshot,
+                {},
+            ),
         ).to.be.rejected;
 
         await chai.expect(
-            actionHandler.validate({
-                name: 'test',
-                inline: []
-            }, context, snapshot, {})
-        ).to.be.rejected;
-
-        await chai.expect(
-            actionHandler.validate({
-                name: 'test',
-                server: 'test',
-                username: 'test',
-                password: 'test'
-            }, context, snapshot, {})
+            actionHandler.validate(
+                {
+                    name: 'test',
+                    server: 'test',
+                    username: 'test',
+                    password: 'test',
+                },
+                context,
+                snapshot,
+                {},
+            ),
         ).to.be.rejected;
     }
 
@@ -60,14 +78,18 @@ class K8sApplyDockerRegistrySecretActionHandlerTestSuite extends K8sBaseHandlerT
         const context = ContextUtil.generateEmptyContext();
         const snapshot = new ActionSnapshot('.', {}, '', 0, {});
 
-        await actionHandler.validate({
-            name: 'test',
-            server: 'test',
-            username: 'test',
-            password: 'test',
-            email: 'foo@bar.com'
-        }, context, snapshot, {});
-
+        await actionHandler.validate(
+            {
+                name: 'test',
+                server: 'test',
+                username: 'test',
+                password: 'test',
+                email: 'foo@bar.com',
+            },
+            context,
+            snapshot,
+            {},
+        );
     }
 
     @test()
@@ -81,14 +103,19 @@ class K8sApplyDockerRegistrySecretActionHandlerTestSuite extends K8sBaseHandlerT
             server: '127.0.0.1',
             username: 'foo',
             password: 'bar',
-            email: 'foo@bar.com'
+            email: 'foo@bar.com',
         };
 
         await actionHandler.validate(options, context, snapshot, {});
         await actionHandler.execute(options, context, snapshot, {});
 
-        const result = await Container.get(K8sKubectlService)
-            .execKubectlCommand(['get', 'secret', options.name, '-o', 'json']);
+        const result = await Container.get(K8sKubectlService).execKubectlCommand([
+            'get',
+            'secret',
+            options.name,
+            '-o',
+            'json',
+        ]);
 
         if (result.code !== 0) {
             throw new Error(`code: ${result.code};\nstdout: ${result.stdout};\nstderr: ${result.stderr}`);
@@ -96,16 +123,18 @@ class K8sApplyDockerRegistrySecretActionHandlerTestSuite extends K8sBaseHandlerT
 
         const configMap = JSON.parse(result.stdout);
         assert.deepStrictEqual(configMap.data, {
-            '.dockerconfigjson': new Buffer(JSON.stringify({
-                auths: {
-                    '127.0.0.1': {
-                        username: 'foo',
-                        password: 'bar',
-                        email: 'foo@bar.com',
-                        auth: new Buffer('foo:bar').toString('base64')
-                    }
-                }
-            })).toString('base64')
+            '.dockerconfigjson': new Buffer(
+                JSON.stringify({
+                    auths: {
+                        '127.0.0.1': {
+                            username: 'foo',
+                            password: 'bar',
+                            email: 'foo@bar.com',
+                            auth: new Buffer('foo:bar').toString('base64'),
+                        },
+                    },
+                }),
+            ).toString('base64'),
         });
 
         assert.strictEqual(context.entities.registered.length, 1);
@@ -124,14 +153,19 @@ class K8sApplyDockerRegistrySecretActionHandlerTestSuite extends K8sBaseHandlerT
             server: '127.0.0.1',
             username: 'foo',
             password: 'bar',
-            email: 'foo@bar.com'
+            email: 'foo@bar.com',
         };
 
         await actionHandler.validate(options, context, snapshot, {});
         await actionHandler.execute(options, context, snapshot, {});
 
-        const result = await Container.get(K8sKubectlService)
-            .execKubectlCommand(['get', 'secret', options.name, '-o', 'json']);
+        const result = await Container.get(K8sKubectlService).execKubectlCommand([
+            'get',
+            'secret',
+            options.name,
+            '-o',
+            'json',
+        ]);
 
         if (result.code !== 0) {
             throw new Error(`code: ${result.code};\nstdout: ${result.stdout};\nstderr: ${result.stderr}`);
@@ -139,16 +173,18 @@ class K8sApplyDockerRegistrySecretActionHandlerTestSuite extends K8sBaseHandlerT
 
         const configMap = JSON.parse(result.stdout);
         assert.deepStrictEqual(configMap.data, {
-            '.dockerconfigjson': new Buffer(JSON.stringify({
-                auths: {
-                    '127.0.0.1': {
-                        username: 'foo',
-                        password: 'bar',
-                        email: 'foo@bar.com',
-                        auth: new Buffer('foo:bar').toString('base64')
-                    }
-                }
-            })).toString('base64')
+            '.dockerconfigjson': new Buffer(
+                JSON.stringify({
+                    auths: {
+                        '127.0.0.1': {
+                            username: 'foo',
+                            password: 'bar',
+                            email: 'foo@bar.com',
+                            auth: new Buffer('foo:bar').toString('base64'),
+                        },
+                    },
+                }),
+            ).toString('base64'),
         });
 
         assert.strictEqual(context.entities.registered.length, 1);

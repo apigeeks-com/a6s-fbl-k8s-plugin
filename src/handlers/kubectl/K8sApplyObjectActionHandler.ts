@@ -1,20 +1,15 @@
-import {ActionHandler, ActionSnapshot} from 'fbl/dist/src/models';
 import * as Joi from 'joi';
-import {IContext, IActionHandlerMetadata, IDelegatedParameters} from 'fbl/dist/src/interfaces';
-import {IK8sObject_JOI_SCHEMA} from '../../interfaces';
-import {Container} from 'typedi';
-import {K8sKubectlService} from '../../services';
+import { Container } from 'typedi';
+import { ActionHandler, ActionSnapshot } from 'fbl/dist/src/models';
+import { IContext, IActionHandlerMetadata, IDelegatedParameters } from 'fbl/dist/src/interfaces';
 
-const packageJson = require('../../../../package.json');
+import { k8sObjectJoiSchema } from '../../interfaces';
+import { K8sKubectlService } from '../../services';
 
 export class K8sApplyObjectActionHandler extends ActionHandler {
-    private static metadata = <IActionHandlerMetadata> {
+    private static metadata = <IActionHandlerMetadata>{
         id: 'a6s.k8s.kubectl.apply',
-        version: packageJson.version,
-        aliases: [
-            'k8s.kubectl.apply',
-            'kubectl.apply'
-        ]
+        aliases: ['k8s.kubectl.apply', 'kubectl.apply'],
     };
 
     /* istanbul ignore next */
@@ -23,10 +18,15 @@ export class K8sApplyObjectActionHandler extends ActionHandler {
     }
 
     getValidationSchema(): Joi.SchemaLike | null {
-        return IK8sObject_JOI_SCHEMA;
+        return k8sObjectJoiSchema;
     }
 
-    async execute(options: any, context: IContext, snapshot: ActionSnapshot, parameters: IDelegatedParameters): Promise<void> {
+    async execute(
+        options: any,
+        context: IContext,
+        snapshot: ActionSnapshot,
+        parameters: IDelegatedParameters,
+    ): Promise<void> {
         await Container.get(K8sKubectlService).applyObject(options, context);
     }
 }

@@ -1,8 +1,9 @@
-import {ContextUtil} from 'fbl/dist/src/utils';
-import {ActionSnapshot} from 'fbl/dist/src/models';
 import Container from 'typedi';
-import {K8sCleanupService} from '../../src/services';
-import {TempPathsRegistry} from 'fbl/dist/src/services';
+import { ContextUtil } from 'fbl/dist/src/utils';
+import { ActionSnapshot } from 'fbl/dist/src/models';
+import { TempPathsRegistry } from 'fbl/dist/src/services';
+
+import { K8sCleanupService } from '../../src/services';
 
 export class K8sBaseHandlerTestSuite {
     async after(): Promise<void> {
