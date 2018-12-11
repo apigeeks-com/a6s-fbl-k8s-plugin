@@ -1,7 +1,7 @@
 import {suite, test} from 'mocha-typescript';
 
 import {K8sApplyTLSSecretActionHandler} from '../../../src/handlers/kubectl';
-import {ContextUtil} from 'fbl/dist/src/utils';
+import {ContextUtil, FSUtil} from 'fbl/dist/src/utils';
 import {ActionSnapshot} from 'fbl/dist/src/models';
 import * as assert from 'assert';
 import {TempPathsRegistry} from 'fbl/dist/src/services';
@@ -169,40 +169,44 @@ class K8sApplyTLSSecretActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
     }
 
     @test()
-    async failCertValidaion() {
+    async failCertValidation() {
         const actionHandler = new K8sApplyTLSSecretActionHandler();
         const context = ContextUtil.generateEmptyContext();
         const snapshot = new ActionSnapshot('.', {}, '', 0, {});
         const tempPathsRegistry = Container.get(TempPathsRegistry);
         const key = await tempPathsRegistry.createTempFile();
+        const handlerOptions = {
+            name: 'test',
+            files: {
+                cert: 'fake-cert.crt',
+                key: key,
+            }
+        };
+        const certPath = FSUtil.getAbsolutePath(handlerOptions.files.cert, snapshot.wd);
 
         await chai.expect(
-            actionHandler.validate({
-                name: 'test',
-                files: {
-                    cert: 'fake-cert.crt',
-                    key: key,
-                }
-            }, context, snapshot, {})
-        ).to.be.rejectedWith('Unable to locate cert file for given path');
+            actionHandler.validate(handlerOptions, context, snapshot, {})
+        ).to.eventually.be.rejected.and.has.property('message', `Unable to locate cert file for given path: ${certPath}`);
     }
 
     @test()
-    async failKeyValidaion() {
+    async failKeyValidation() {
         const actionHandler = new K8sApplyTLSSecretActionHandler();
         const context = ContextUtil.generateEmptyContext();
         const snapshot = new ActionSnapshot('.', {}, '', 0, {});
         const tempPathsRegistry = Container.get(TempPathsRegistry);
         const cert = await tempPathsRegistry.createTempFile();
+        const handlerOptions = {
+            name: 'test',
+            files: {
+                cert: cert,
+                key: 'fake-key.key'
+            }
+        };
+        const keyPath = FSUtil.getAbsolutePath(handlerOptions.files.key, snapshot.wd);
 
         await chai.expect(
-            actionHandler.validate({
-                name: 'test',
-                files: {
-                    cert: cert,
-                    key: 'fake-key.key'
-                }
-            }, context, snapshot, {})
-        ).to.be.rejectedWith('Unable to locate key file for given path');
+            actionHandler.validate(handlerOptions, context, snapshot, {})
+        ).to.eventually.be.rejected.and.has.property('message', `Unable to locate key file for given path: ${keyPath}`);
     }
 }
