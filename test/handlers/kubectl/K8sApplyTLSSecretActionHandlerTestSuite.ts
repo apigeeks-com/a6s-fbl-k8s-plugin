@@ -6,7 +6,7 @@ import { promisify } from 'util';
 import { readFile } from 'fs';
 import { join } from 'path';
 import { suite, test } from 'mocha-typescript';
-import { ContextUtil } from 'fbl/dist/src/utils';
+import { ContextUtil, FSUtil } from 'fbl/dist/src/utils';
 import { ActionSnapshot } from 'fbl/dist/src/models';
 import { TempPathsRegistry } from 'fbl/dist/src/services';
 
@@ -206,5 +206,53 @@ class K8sApplyTLSSecretActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
 
         assert.strictEqual(context.entities.registered.length, 1);
         assert.strictEqual(context.entities.created.length, 1);
+    }
+
+    @test()
+    async failCertValidation() {
+        const actionHandler = new K8sApplyTLSSecretActionHandler();
+        const context = ContextUtil.generateEmptyContext();
+        const snapshot = new ActionSnapshot('.', {}, '', 0, {});
+        const tempPathsRegistry = Container.get(TempPathsRegistry);
+        const key = await tempPathsRegistry.createTempFile();
+        const handlerOptions = {
+            name: 'test',
+            files: {
+                cert: 'fake-cert.crt',
+                key: key,
+            },
+        };
+        const certPath = FSUtil.getAbsolutePath(handlerOptions.files.cert, snapshot.wd);
+
+        await chai
+            .expect(actionHandler.validate(handlerOptions, context, snapshot, {}))
+            .to.eventually.be.rejected.and.has.property(
+                'message',
+                `Unable to locate cert file for given path: ${certPath}`,
+            );
+    }
+
+    @test()
+    async failKeyValidation() {
+        const actionHandler = new K8sApplyTLSSecretActionHandler();
+        const context = ContextUtil.generateEmptyContext();
+        const snapshot = new ActionSnapshot('.', {}, '', 0, {});
+        const tempPathsRegistry = Container.get(TempPathsRegistry);
+        const cert = await tempPathsRegistry.createTempFile();
+        const handlerOptions = {
+            name: 'test',
+            files: {
+                cert: cert,
+                key: 'fake-key.key',
+            },
+        };
+        const keyPath = FSUtil.getAbsolutePath(handlerOptions.files.key, snapshot.wd);
+
+        await chai
+            .expect(actionHandler.validate(handlerOptions, context, snapshot, {}))
+            .to.eventually.be.rejected.and.has.property(
+                'message',
+                `Unable to locate key file for given path: ${keyPath}`,
+            );
     }
 }

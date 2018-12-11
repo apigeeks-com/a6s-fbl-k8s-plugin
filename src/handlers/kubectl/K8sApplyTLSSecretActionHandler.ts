@@ -51,15 +51,17 @@ export class K8sApplyTLSSecretActionHandler extends ActionHandler {
 
         if (options.files) {
             const existsAsync = promisify(exists);
+            const certPath = FSUtil.getAbsolutePath(options.files.cert, snapshot.wd);
+            const certExists = await existsAsync(certPath);
+            const keyPath = FSUtil.getAbsolutePath(options.files.key, snapshot.wd);
+            const keyExists = await existsAsync(keyPath);
 
-            const certExists = await existsAsync(FSUtil.getAbsolutePath(options.files.cert, snapshot.wd));
             if (!certExists) {
-                throw new Error('Unable to locate cert file for given path');
+                throw new Error(`Unable to locate cert file for given path: ${certPath}`);
             }
 
-            const keyExists = await existsAsync(FSUtil.getAbsolutePath(options.files.key, snapshot.wd));
             if (!keyExists) {
-                throw new Error('Unable to locate key file for given path');
+                throw new Error(`Unable to locate key file for given path: ${keyPath}`);
             }
         }
     }
