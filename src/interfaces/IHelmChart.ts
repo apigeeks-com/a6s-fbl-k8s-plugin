@@ -1,6 +1,4 @@
-import * as Joi from 'joi';
-
-interface IHelmChart {
+export interface IHelmChart {
     /**
      * Release name
      */
@@ -32,9 +30,9 @@ interface IHelmChart {
      */
     variables: {
         // Note: inline variables are passed after files
-        inline?: any,
+        inline?: any;
         // Paths to variable files
-        files?: string[]
+        files?: string[];
     };
 
     /**
@@ -48,18 +46,3 @@ interface IHelmChart {
      */
     timeout?: number;
 }
-
-const HelmChart_JOI_SCHEMA = Joi.object({
-    name: Joi.string(),
-    namespace: Joi.string(),
-    chart: Joi.string().required(),
-    version: Joi.string(),
-    variables: Joi.object({
-        inline: Joi.any(),
-        files: Joi.array().items(Joi.string())
-    }),
-    wait: Joi.boolean(),
-    timeout: Joi.number().integer().min(0).max(60 * 60) // 1h deployment limit
-}).options({ abortEarly: true });
-
-export {IHelmChart, HelmChart_JOI_SCHEMA};

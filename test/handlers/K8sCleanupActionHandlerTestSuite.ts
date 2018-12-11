@@ -1,18 +1,19 @@
 import * as assert from 'assert';
-import {suite, test} from 'mocha-typescript';
-import {FlowService} from 'fbl/dist/src/services';
-import {Container} from 'typedi';
-import {ActionSnapshot, IActionStep} from 'fbl/dist/src/models';
-import {ContextUtil} from 'fbl/dist/src/utils';
-import {K8sCleanupActionHandler, K8sHelmUpgradeOrInstallActionHandler} from '../../src/handlers';
-import {K8sApplyObjectActionHandler} from '../../src/handlers/kubectl';
-import {K8sHelmService, K8sKubectlService} from '../../src/services';
-import {join} from 'path';
-import {K8sBaseHandlerTestSuite} from './K8sBaseHandlerTestSuite';
-import {IK8sObject} from '../../src/interfaces';
+import * as chai from 'chai';
+import * as chaiAsPromised from 'chai-as-promised';
+import { suite, test } from 'mocha-typescript';
+import { Container } from 'typedi';
+import { FlowService } from 'fbl/dist/src/services';
+import { ActionSnapshot, IActionStep } from 'fbl/dist/src/models';
+import { ContextUtil } from 'fbl/dist/src/utils';
 
-const chai = require('chai');
-const chaiAsPromised = require('chai-as-promised');
+import { K8sCleanupActionHandler, K8sHelmUpgradeOrInstallActionHandler } from '../../src/handlers';
+import { K8sApplyObjectActionHandler } from '../../src/handlers/kubectl';
+import { K8sHelmService, K8sKubectlService } from '../../src/services';
+import { join } from 'path';
+import { K8sBaseHandlerTestSuite } from './K8sBaseHandlerTestSuite';
+import { IK8sObject } from '../../src/interfaces';
+
 chai.use(chaiAsPromised);
 
 @suite()
@@ -23,23 +24,31 @@ export class K8sCleanupActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
         const context = ContextUtil.generateEmptyContext();
         const snapshot = new ActionSnapshot('.', {}, '', 0, {});
 
-        await chai.expect(
-            actionHandler.validate([], context, snapshot, {})
-        ).to.be.rejected;
+        await chai.expect(actionHandler.validate([], context, snapshot, {})).to.be.rejected;
 
         await chai.expect(
-            actionHandler.validate({
-                dryRun: true
-            }, context, snapshot, {})
-        ).to.be.rejected;
-
-        await chai.expect(
-            actionHandler.validate({
-                namespace: 'default',
-                ignored: {
-                    storageClasses: [],
+            actionHandler.validate(
+                {
+                    dryRun: true,
                 },
-            }, context, snapshot, {})
+                context,
+                snapshot,
+                {},
+            ),
+        ).to.be.rejected;
+
+        await chai.expect(
+            actionHandler.validate(
+                {
+                    namespace: 'default',
+                    ignored: {
+                        storageClasses: [],
+                    },
+                },
+                context,
+                snapshot,
+                {},
+            ),
         ).to.be.rejected;
     }
 
@@ -49,9 +58,14 @@ export class K8sCleanupActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
         const context = ContextUtil.generateEmptyContext();
         const snapshot = new ActionSnapshot('.', {}, '', 0, {});
 
-        await actionHandler.validate({
-            namespace: 'CustomObject',
-        }, context, snapshot, {});
+        await actionHandler.validate(
+            {
+                namespace: 'CustomObject',
+            },
+            context,
+            snapshot,
+            {},
+        );
     }
 
     @test()
@@ -63,12 +77,12 @@ export class K8sCleanupActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
 
         const optionsHelmDeployed = {
             chart: 'helm/sample',
-            name: 'helm-cleanup-deployed'
+            name: 'helm-cleanup-deployed',
         };
 
         const optionsHelmCluster = {
             chart: 'helm/cleanup',
-            name: 'helm-cleanup-cluster'
+            name: 'helm-cleanup-cluster',
         };
 
         await helmUpgradeOrInstallActionHandler.validate(optionsHelmDeployed, context, snapshot, {});
@@ -90,8 +104,12 @@ export class K8sCleanupActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
 
         const objectsAfterCleanup = await Container.get(K8sHelmService).listInstalledHelms();
 
-        chai.expect(objectsAfterCleanup).to.be.an('array').that.not.includes('helm-cleanup-cluster');
-        chai.expect(objectsAfterCleanup).to.be.an('array').that.includes('helm-cleanup-deployed');
+        chai.expect(objectsAfterCleanup)
+            .to.be.an('array')
+            .that.not.includes('helm-cleanup-cluster');
+        chai.expect(objectsAfterCleanup)
+            .to.be.an('array')
+            .that.includes('helm-cleanup-deployed');
 
         context.entities.registered.splice(-1, 1);
         await actionHandler.execute(cleanupOptions, context, snapshot, {});
@@ -115,28 +133,28 @@ export class K8sCleanupActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
                 apiVersion: 'storage.k8s.io/v1',
                 metadata: {
                     namespace: 'default',
-                    name: 'config-deployed'
+                    name: 'config-deployed',
                 },
                 provisioner: 'kubernetes.io/aws-ebs',
                 parameters: {
-                    type: 'gp2'
+                    type: 'gp2',
                 },
-                volumeBindingMode: 'Immediate'
+                volumeBindingMode: 'Immediate',
             },
             {
                 kind: 'StorageClass',
                 apiVersion: 'storage.k8s.io/v1',
                 metadata: {
                     namespace: 'default',
-                    name: 'config-cluster'
+                    name: 'config-cluster',
                 },
                 provisioner: 'kubernetes.io/aws-ebs',
                 parameters: {
-                    type: 'gp2'
+                    type: 'gp2',
                 },
-                volumeBindingMode: 'Immediate'
+                volumeBindingMode: 'Immediate',
             },
-            'StorageClass'
+            'StorageClass',
         );
     }
 
@@ -152,13 +170,13 @@ export class K8sCleanupActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
             apiVersion: 'storage.k8s.io/v1',
             metadata: {
                 namespace: 'default',
-                name: 'test-storage-class'
+                name: 'test-storage-class',
             },
             provisioner: 'kubernetes.io/aws-ebs',
             parameters: {
-                type: 'gp2'
+                type: 'gp2',
             },
-            volumeBindingMode: 'Immediate'
+            volumeBindingMode: 'Immediate',
         };
 
         await applyK8sObjectActionHandler.validate(k8sObject, context, snapshot, {});
@@ -176,14 +194,12 @@ export class K8sCleanupActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
                     volumeMode: 'Filesystem',
                     resources: {
                         requests: {
-                            storage: '8Gi'
-                        }
+                            storage: '8Gi',
+                        },
                     },
-                    accessModes: [
-                        'ReadWriteOnce'
-                    ],
-                    storageClassName: 'test-storage-class'
-                }
+                    accessModes: ['ReadWriteOnce'],
+                    storageClassName: 'test-storage-class',
+                },
             },
             {
                 apiVersion: 'v1',
@@ -196,16 +212,14 @@ export class K8sCleanupActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
                     volumeMode: 'Filesystem',
                     resources: {
                         requests: {
-                            storage: '8Gi'
-                        }
+                            storage: '8Gi',
+                        },
                     },
-                    accessModes: [
-                        'ReadWriteOnce'
-                    ],
-                    storageClassName: 'test-storage-class'
-                }
+                    accessModes: ['ReadWriteOnce'],
+                    storageClassName: 'test-storage-class',
+                },
             },
-            'pvc'
+            'pvc',
         );
     }
 
@@ -233,11 +247,12 @@ export class K8sCleanupActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
         const cleanupOptionSecret = {
             dryRun: true,
             namespace: 'default',
-            kinds: ['ConfigMap']
+            kinds: ['ConfigMap'],
         };
         await actionHandler.execute(cleanupOptionSecret, context, snapshot, {});
 
-        const logs: string[] = await snapshot.getSteps()
+        const logs: string[] = await snapshot
+            .getSteps()
             .filter((step: IActionStep) => step.type === 'log')
             .map(log => log.payload);
 
@@ -267,7 +282,7 @@ export class K8sCleanupActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
 
         const options = {
             chart: 'helm/cleanup',
-            name: 'helm-cleanup-test'
+            name: 'helm-cleanup-test',
         };
 
         await helmUpgradeOrInstallActionHandler.validate(options, context, snapshotHelm, {});
@@ -275,28 +290,40 @@ export class K8sCleanupActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
 
         const configMaps = await Container.get(K8sKubectlService).listObjects(kind, 'default');
 
-        chai.expect(configMaps).to.be.an('array').that.includes('config-cluster');
-        chai.expect(configMaps).to.be.an('array').that.includes('config-deployed');
-        chai.expect(configMaps).to.be.an('array').that.includes('helm-cleanup');
+        chai.expect(configMaps)
+            .to.be.an('array')
+            .that.includes('config-cluster');
+        chai.expect(configMaps)
+            .to.be.an('array')
+            .that.includes('config-deployed');
+        chai.expect(configMaps)
+            .to.be.an('array')
+            .that.includes('helm-cleanup');
 
         const actionHandler = new K8sCleanupActionHandler();
         const cleanupOptions = {
             namespace: 'default',
             ignored: {
                 objects: {
-                    ConfigMap: ['foo-*']
-                }
-            }
+                    ConfigMap: ['foo-*'],
+                },
+            },
         };
 
         await actionHandler.validate(cleanupOptions, context, snapshot, {});
         await actionHandler.execute(cleanupOptions, context, snapshot, {});
 
         const objectsAfterCleanup = await Container.get(K8sKubectlService).listObjects(kind, 'default');
-        
-        chai.expect(objectsAfterCleanup).to.be.an('array').that.not.includes('config-cluster');
-        chai.expect(objectsAfterCleanup).to.be.an('array').that.includes('config-deployed');
-        chai.expect(objectsAfterCleanup).to.be.an('array').that.includes('helm-cleanup');
+
+        chai.expect(objectsAfterCleanup)
+            .to.be.an('array')
+            .that.not.includes('config-cluster');
+        chai.expect(objectsAfterCleanup)
+            .to.be.an('array')
+            .that.includes('config-deployed');
+        chai.expect(objectsAfterCleanup)
+            .to.be.an('array')
+            .that.includes('helm-cleanup');
     }
 
     private async cleanupConfigMapAndSecret(kind: string) {
@@ -305,25 +332,25 @@ export class K8sCleanupActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
                 kind: kind,
                 apiVersion: 'v1',
                 data: {
-                    test: 'true'
+                    test: 'true',
                 },
                 metadata: {
                     namespace: 'default',
-                    name: 'config-deployed'
-                }
+                    name: 'config-deployed',
+                },
             },
             {
                 kind: kind,
                 apiVersion: 'v1',
                 data: {
-                    test: 'true'
+                    test: 'true',
                 },
                 metadata: {
                     namespace: 'default',
-                    name: 'config-cluster'
-                }
+                    name: 'config-cluster',
+                },
             },
-            kind
+            kind,
         );
     }
 }

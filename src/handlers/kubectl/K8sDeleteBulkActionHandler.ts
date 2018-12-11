@@ -4,27 +4,23 @@ import { ActionHandler, ActionSnapshot } from 'fbl/dist/src/models';
 import { IContext, IActionHandlerMetadata, IDelegatedParameters } from 'fbl/dist/src/interfaces';
 
 import { K8sKubectlService } from '../../services';
+import { IK8sBulkDelete } from '../../interfaces';
 
-export class K8sDeleteObjectActionHandler extends ActionHandler {
+export class K8sDeleteBulkActionHandler extends ActionHandler {
     private static metadata = <IActionHandlerMetadata>{
-        id: 'a6s.k8s.kubectl.delete',
-        aliases: ['k8s.kubectl.delete', 'kubectl.delete'],
+        id: 'a6s.k8s.kubectl.delete.bulk',
+        aliases: ['k8s.kubectl.delete.bulk', 'kubectl.delete.bulk'],
     };
 
     private static schema = Joi.object({
         kind: Joi.string()
             .min(1)
             .required(),
-        metadata: Joi.object({
-            name: Joi.string()
-                .min(1)
-                .required(),
-            namespace: Joi.string().min(1),
-        })
-            .required()
-            .options({
-                allowUnknown: true,
-            }),
+        namespace: Joi.string().min(1),
+        names: Joi.array()
+            .min(1)
+            .items(Joi.string().required())
+            .required(),
     })
         .required()
         .options({
@@ -33,19 +29,19 @@ export class K8sDeleteObjectActionHandler extends ActionHandler {
 
     /* istanbul ignore next */
     getMetadata(): IActionHandlerMetadata {
-        return K8sDeleteObjectActionHandler.metadata;
+        return K8sDeleteBulkActionHandler.metadata;
     }
 
     getValidationSchema(): Joi.SchemaLike | null {
-        return K8sDeleteObjectActionHandler.schema;
+        return K8sDeleteBulkActionHandler.schema;
     }
 
     async execute(
-        options: any,
+        options: IK8sBulkDelete,
         context: IContext,
         snapshot: ActionSnapshot,
         parameters: IDelegatedParameters,
     ): Promise<void> {
-        await Container.get(K8sKubectlService).deleteObject(options, context);
+        await Container.get(K8sKubectlService).deleteObjects(options, context);
     }
 }

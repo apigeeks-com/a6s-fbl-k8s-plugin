@@ -7,14 +7,15 @@ Allows to use common kubectl commands inside fbl flow.
 **ID:** a6s.k8s.kubectl.apply.ConfigMap
 
 **Aliases:**
- - k8s.kubectl.apply.ConfigMap
- - kubectl.apply.ConfigMap
- - kubectl.ConfigMap
- 
+
+- k8s.kubectl.apply.ConfigMap
+- kubectl.apply.ConfigMap
+- kubectl.ConfigMap
+
 **Example:**
 
 ```yaml
-kubectl.ConfigMap: 
+kubectl.ConfigMap:
   # Name of the ConfigMap
   name: application-config-map
   # [optional] K8s namespace
@@ -25,27 +26,28 @@ kubectl.ConfigMap:
     # make sure not to pass paths to files with same name
     - some/path/to/test.yml
   # [optional] define config map values inline (key/value pairs)
-  inline:    
+  inline:
     # where value can be a string ...
     host: foo.bar
     # ... or number
-    port: 8000 
+    port: 8000
 ```
 
-## Action Handler: Apply Secret (Generic) 
+## Action Handler: Apply Secret (Generic)
 
 **ID:** a6s.k8s.kubectl.apply.Secret.generic
 
 **Aliases:**
- - k8s.kubectl.apply.Secret.generic
- - kubectl.apply.Secret.generic
- - kubectl.Secret.generic
- - kubectl.Secret
- 
+
+- k8s.kubectl.apply.Secret.generic
+- kubectl.apply.Secret.generic
+- kubectl.Secret.generic
+- kubectl.Secret
+
 **Example:**
 
 ```yaml
-kubectl.Secret: 
+kubectl.Secret:
   # Name of the ConfigMap
   name: application-secret
   # [optional] K8s namespace
@@ -56,11 +58,11 @@ kubectl.Secret:
     # make sure not to pass paths to files with same name
     - some/path/to/test.yml
   # [optional] define config map values inline (key/value pairs)
-  inline:    
+  inline:
     # where value can be a string ...
     host: foo.bar
     # ... or number
-    port: 8000 
+    port: 8000
 ```
 
 ## Action Handler: Docker Registry Secret
@@ -68,27 +70,28 @@ kubectl.Secret:
 **ID:** a6s.k8s.kubectl.apply.Secret.docker-registry
 
 **Aliases:**
- - k8s.kubectl.apply.Secret.docker-registry
- - kubectl.apply.Secret.docker-registry
- - kubectl.Secret.docker-registry
- - kubectl.Secret.docker
- 
+
+- k8s.kubectl.apply.Secret.docker-registry
+- kubectl.apply.Secret.docker-registry
+- kubectl.Secret.docker-registry
+- kubectl.Secret.docker
+
 **Example:**
 
 ```yaml
 kubectl.Secret.docker:
-    # secret name
-    name: docker-secret
-    # [optional] k8s namespace
-    namespace: default
-    
-    # docker registry host
-    server: docker.foo.bar.com
-    # docker registry user credentials
-    username: root
-    password: toor
-    # docker user email address
-    email: foo@bar.com
+  # secret name
+  name: docker-secret
+  # [optional] k8s namespace
+  namespace: default
+
+  # docker registry host
+  server: docker.foo.bar.com
+  # docker registry user credentials
+  username: root
+  password: toor
+  # docker user email address
+  email: foo@bar.com
 ```
 
 ## Action Handler: TLS Secret
@@ -96,10 +99,11 @@ kubectl.Secret.docker:
 **ID:** a6s.k8s.kubectl.apply.Secret.tls
 
 **Aliases:**
- - k8s.kubectl.apply.Secret.tls
- - kubectl.apply.Secret.tls
- - kubectl.Secret.tls
- 
+
+- k8s.kubectl.apply.Secret.tls
+- kubectl.apply.Secret.tls
+- kubectl.Secret.tls
+
 **Example:**
 
 ```yaml
@@ -108,15 +112,15 @@ kubectl.Secret.tls:
   name: docker-secret
   # [optional] k8s namespace
   namespace: default
-  
+
   # [optional] load certificate and key from files
   files:
     cert: /path/to/cert.crt
     key: /path/to/cert.key
-    
+
   # [optional] define key and certificate inline
-  inline: 
-    cert: |- 
+  inline:
+    cert: |-
       -----BEGIN CERTIFICATE-----
       MIIDBzCCAe+gAwIBAgIJAODta5Fpp03BMA0GCSqGSIb3DQEBBQUAMBoxGDAWBgNV
       BAMMD3d3dy5leGFtcGxlLmNvbTAeFw0xODEwMjUxMjU3MzdaFw0yODEwMjIxMjU3
@@ -136,7 +140,7 @@ kubectl.Secret.tls:
       Q+iFFDBLV3pSivdqexgO2oBl7e+9fn7hQwhhEF5oz/wXiYZaeKgx95H9ZnMnoMXX
       Rv2TYPiajCOe3ZM=
       -----END CERTIFICATE-----
-      
+
     key: |-
       -----BEGIN RSA PRIVATE KEY-----
       MIIEpAIBAAKCAQEAxGeKmVPCuPS9v0+AzYDphJxxGk9dyhT5QTPAdRDSAYPiO6JX
@@ -164,69 +168,93 @@ kubectl.Secret.tls:
       rse/nQKBgQDtEGr38AlBITx7gdXmMmjV5lIguhW72pnPnqcOxtmW2C4ZI5GPDxPI
       SSR5nGd5OdRceSVIR/pB/fFr13O8toEAKmY7AABEBTCIsBIo6+gnixFMG/y6UMA3
       2bHuV0PWZj9bHBsADDKhZ8/keNbiTSLJdgOcM85ug6uE47krZtGEIw==
-      -----END RSA PRIVATE KEY-----        
+      -----END RSA PRIVATE KEY-----
 ```
 
-## Action Handler: Apply K8s Object 
+## Action Handler: Apply K8s Object
 
 **ID:** a6s.k8s.kubectl.apply
 
-**Aliases:** 
- - k8s.kubectl.apply
- - kubectl.apply
- 
+**Aliases:**
+
+- k8s.kubectl.apply
+- kubectl.apply
+
 **Example:**
 
 ```yaml
 kubectl.apply:
- kind: ObjectKind
- apiVersion: v1
- metadata:
-   name: test
- # all other fields are optional for the plugin, but may be required by K8s itself
- # please reference object related documentation for what fields should be provided
+  kind: ObjectKind
+  apiVersion: v1
+  metadata:
+    name: test
+  # all other fields are optional for the plugin, but may be required by K8s itself
+  # please reference object related documentation for what fields should be provided
 ```
 
-## Action Handler: Delete K8s Object 
+## Action Handler: Delete K8s Object
 
 **ID:** a6s.k8s.kubectl.delete
 
-**Aliases:** 
- - k8s.kubectl.delete
- - kubectl.delete
- 
+**Aliases:**
+
+- k8s.kubectl.delete
+- kubectl.delete
+
 **Example:**
 
 ```yaml
 kubectl.delete:
- # object type
- kind: ObjectKind
- metadata: 
-   # object name
-   name: test
-   # [optional] k8s namespace
-   namespace: default
-   
+  # object type
+  kind: ObjectKind
+  metadata:
+    # object name
+    name: test
+    # [optional] k8s namespace
+    namespace: default
 # Note any additional fields are allowed, but will be ignored
 ```
 
-## Action Handler: Get K8s Object 
+## Action Handler: Bulk Delete K8s Object
+
+**ID:** a6s.k8s.kubectl.delete.bulk
+
+**Aliases:**
+
+- k8s.kubectl.delete.bulk
+- kubectl.delete.bulk
+
+**Example:**
+
+```yaml
+kubectl.delete.bulk:
+  # object type
+  kind: ObjectKind
+  # [optional] k8s namespace
+  namespace: default
+  # minimatch patterns for object names
+  names:
+    - 'test-*'
+```
+
+## Action Handler: Get K8s Object
 
 Find K8s object and assign it to context field(s)
 
 **ID:** a6s.k8s.kubectl.get
 
-**Aliases:** 
- - k8s.kubectl.get
- - kubectl.get
- 
+**Aliases:**
+
+- k8s.kubectl.get
+- kubectl.get
+
 **Example:**
 
 ```yaml
 kubectl.get:
   # object type
   kind: ObjectKind
-  metadata: 
+  metadata:
     # object name
     name: test
     # [optional] k8s namespace
@@ -237,6 +265,5 @@ kubectl.get:
     ctx: $.path
     # [optional] "secrets" path to assign object to
     secrets: $.path
-    
 # Note any additional fields are allowed, but will be ignored
 ```

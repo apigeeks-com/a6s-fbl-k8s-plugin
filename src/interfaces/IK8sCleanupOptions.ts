@@ -3,7 +3,7 @@ export interface IK8sCleanupOptions {
     namespace: string;
     kinds?: string[];
     ignored?: {
-        objects: {[key: string]: string[]};
+        objects: { [key: string]: string[] };
         helms: string[];
     };
 }

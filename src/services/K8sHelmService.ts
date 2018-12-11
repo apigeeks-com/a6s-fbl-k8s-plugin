@@ -1,12 +1,13 @@
 import * as yaml from 'js-yaml';
-import {Inject, Service} from 'typedi';
-import {ChildProcessService, TempPathsRegistry} from 'fbl/dist/src/services';
-import {promisify} from 'util';
-import {exists, writeFile} from 'fs';
-import {dump} from 'js-yaml';
-import {IHelmChart, IHelmDeploymentInfo, IK8sObject} from '../interfaces';
-import {FSUtil} from 'fbl/dist/src/utils';
-import {IContext, IContextEntity} from 'fbl/dist/src/interfaces';
+import { Inject, Service } from 'typedi';
+import { promisify } from 'util';
+import { exists, writeFile } from 'fs';
+import { dump } from 'js-yaml';
+import { ChildProcessService, TempPathsRegistry } from 'fbl/dist/src/services';
+import { FSUtil } from 'fbl/dist/src/utils';
+import { IContext, IContextEntity } from 'fbl/dist/src/interfaces';
+
+import { IHelmChart, IHelmDeploymentInfo, IK8sObject, IExecOutput } from '../interfaces';
 
 @Service()
 export class K8sHelmService {
@@ -20,30 +21,25 @@ export class K8sHelmService {
      * Execute "helm" command
      * @param {string[]} args
      * @param {string} wd
-     * @return {Promise<{code: number; stdout: string; stderr: string}>}
+     * @return {Promise<IExecOutput>}
      */
-    async execHelmCommand(args: string[], wd?: string): Promise<{code: number, stdout: string, stderr: string}> {
+    async execHelmCommand(args: string[], wd?: string): Promise<IExecOutput> {
         const stdout: string[] = [];
         const stderr: string[] = [];
 
-        const code = await this.childProcessService.exec(
-            'helm',
-            args,
-            wd || '.',
-            {
-                stdout: (chunk: any) => {
-                    stdout.push(chunk.toString().trim());
-                },
-                stderr: (chunk: any) => {
-                    stderr.push(chunk.toString().trim());
-                }
-            }
-        );
+        const code = await this.childProcessService.exec('helm', args, wd || '.', {
+            stdout: (chunk: any) => {
+                stdout.push(chunk.toString().trim());
+            },
+            stderr: (chunk: any) => {
+                stderr.push(chunk.toString().trim());
+            },
+        });
 
         return {
             code,
             stdout: stdout.join('\n'),
-            stderr: stderr.join('\n')
+            stderr: stderr.join('\n'),
         };
     }
 
@@ -54,26 +50,26 @@ export class K8sHelmService {
      * @return {Promise<void>}
      */
     async remove(name: string, context: IContext): Promise<void> {
-        const result = await this.execHelmCommand([
-            'del',
-            '--purge',
-            name
-        ]);
+        const result = await this.execHelmCommand(['del', '--purge', name]);
 
         if (result.code !== 0) {
-            throw new Error(`Unable to delete helm, command returned non-zero exit code. Code: ${result.code}\nstderr: ${result.stderr}\nstdout: ${result.stdout}`);
+            throw new Error(
+                `Unable to delete helm, command returned non-zero exit code. Code: ${result.code}\nstderr: ${
+                    result.stderr
+                }\nstdout: ${result.stdout}`,
+            );
         }
 
-        const contextEntity = this.createEntity(<IHelmChart>{name});
+        const contextEntity = this.createEntity(<IHelmChart>{ name });
         context.entities.unregistered.push(contextEntity);
         context.entities.deleted.push(contextEntity);
     }
 
     private createEntity(helmConfig: IHelmChart): IContextEntity {
-        return <IContextEntity> {
+        return <IContextEntity>{
             type: 'helm',
             payload: helmConfig,
-            id: helmConfig.name
+            id: helmConfig.name,
         };
     }
 
@@ -85,9 +81,7 @@ export class K8sHelmService {
      * @return {Promise<void>}
      */
     async updateOrInstall(config: IHelmChart, wd: string, context: IContext): Promise<void> {
-        const args = [
-            'upgrade', '--install'
-        ];
+        const args = ['upgrade', '--install'];
 
         if (config.namespace) {
             args.push('--namespace', config.namespace);
@@ -134,7 +128,11 @@ export class K8sHelmService {
         const result = await this.execHelmCommand(args);
 
         if (result.code !== 0) {
-            throw new Error(`Unable to update or install helm chart, command returned non-zero exit code. Code: ${result.code}\nstderr: ${result.stderr}\nstdout: ${result.stdout}`);
+            throw new Error(
+                `Unable to update or install helm chart, command returned non-zero exit code. Code: ${
+                    result.code
+                }\nstderr: ${result.stderr}\nstdout: ${result.stdout}`,
+            );
         }
 
         const contextEntity = this.createEntity(config);
@@ -154,10 +152,12 @@ export class K8sHelmService {
     async listInstalledHelms(): Promise<string[]> {
         const result = await this.execHelmCommand(['list', '-q']);
 
-        return result.stdout
-            .split('\n')
-            .map(l => l.trim())
-            .filter(l => l) || [];
+        return (
+            result.stdout
+                .split('\n')
+                .map(l => l.trim())
+                .filter(l => l) || []
+        );
     }
 
     /**
@@ -206,8 +206,7 @@ export class K8sHelmService {
 
         helmResult.stdout
             .replace('COMPUTED VALUES', 'COMPUTE-VALUES')
-            .replace('USER-SUPPLIED VALUES', 'USER-SUPPLIED-VALUES')
-        ;
+            .replace('USER-SUPPLIED VALUES', 'USER-SUPPLIED-VALUES');
 
         const lines = helmResult.stdout.split('\n').map(l => l.trim());
 
@@ -256,12 +255,12 @@ export class K8sHelmService {
             computedValues = yaml.safeLoad(values.join('\n')) || {};
         }
 
-        return <IHelmDeploymentInfo> {
+        return <IHelmDeploymentInfo>{
             revision: revisionLine && revisionLine.substring(revisionKey.length),
             released: releasedLine && new Date(releasedLine.substring(releasedKey.length)),
             chart: chartLine && chartLine.substring(chartKey.length),
             userSuppliedValues: userSuppliedValues,
-            computedValues: computedValues
+            computedValues: computedValues,
         };
     }
 }
