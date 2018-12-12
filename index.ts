@@ -1,6 +1,7 @@
 import { IPlugin } from 'fbl/dist/src/interfaces';
 import {
     K8sHelmDeleteActionHandler,
+    K8sHelmDescribeHandler,
     K8sHelmUpgradeOrInstallActionHandler,
     K8sApplyConfigMapActionHandler,
     K8sApplyDockerRegistrySecretActionHandler,
@@ -34,6 +35,7 @@ module.exports = <IPlugin>{
     actionHandlers: [
         // helm
         new K8sHelmDeleteActionHandler(),
+        new K8sHelmDescribeHandler(),
         new K8sHelmUpgradeOrInstallActionHandler(),
 
         // kubectl
