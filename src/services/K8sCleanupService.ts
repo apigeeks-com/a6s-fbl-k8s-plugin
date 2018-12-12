@@ -59,7 +59,7 @@ export class K8sCleanupService {
                 allHelmObjects,
                 deployedK8sObjects,
                 cluster,
-                get(options, ['ignored', kind], []),
+                get(options, ['ignored', 'objects', kind], []),
             );
         }
     }
