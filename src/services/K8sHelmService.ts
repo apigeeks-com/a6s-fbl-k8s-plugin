@@ -210,15 +210,9 @@ export class K8sHelmService {
             .split('\n')
             .map(l => l.trim());
 
-        const revisionKey = 'REVISION: ';
-        const releasedKey = 'RELEASED: ';
-        const chartKey = 'CHART: ';
         const userSuppliedValuesKey = 'USER-SUPPLIED VALUES:';
         const computedValuesKey = 'COMPUTED VALUES:';
 
-        const revisionLine = lines.find(l => l.indexOf(revisionKey) === 0);
-        const releasedLine = lines.find(l => l.indexOf(releasedKey) === 0);
-        const chartLine = lines.find(l => l.indexOf(chartKey) === 0);
         const userValuesLine = lines.find(l => l.indexOf(userSuppliedValuesKey) === 0);
         const computedValuesLine = lines.find(l => l.indexOf(computedValuesKey) === 0);
 
@@ -255,10 +249,19 @@ export class K8sHelmService {
             computedValues = yaml.safeLoad(values.join('\n')) || {};
         }
 
+        const searchValue = (text: string, label: string) => {
+            const value = text.split(new RegExp(`^${label}:\s*(.+?)^[A-Z]{2,}`, 'gmus'))[1];
+
+            if (value) {
+                return value.replace(/\n/gs, '');
+            }
+        };
+
         return <IHelmDeploymentInfo>{
-            revision: revisionLine && revisionLine.substring(revisionKey.length),
-            released: releasedLine && new Date(releasedLine.substring(releasedKey.length)),
-            chart: chartLine && chartLine.substring(chartKey.length),
+            revision: searchValue(helmResult.stdout, 'REVISION'),
+            released:
+                searchValue(helmResult.stdout, 'RELEASED') && new Date(searchValue(helmResult.stdout, 'RELEASED')),
+            chart: searchValue(helmResult.stdout, 'CHART'),
             userSuppliedValues: userSuppliedValues,
             computedValues: computedValues,
         };
