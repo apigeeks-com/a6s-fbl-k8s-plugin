@@ -9,7 +9,7 @@ import { ContextUtil } from 'fbl/dist/src/utils';
 
 import { K8sCleanupActionHandler, K8sHelmUpgradeOrInstallActionHandler } from '../../src/handlers';
 import { K8sApplyObjectActionHandler } from '../../src/handlers/kubectl';
-import { K8sHelmService, K8sKubectlService } from '../../src/services';
+import { K8sCleanupService, K8sHelmService, K8sKubectlService } from '../../src/services';
 import { join } from 'path';
 import { K8sBaseHandlerTestSuite } from './K8sBaseHandlerTestSuite';
 import { IK8sObject } from '../../src/interfaces';
@@ -258,6 +258,130 @@ export class K8sCleanupActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
 
         const lastLog = logs.pop();
         assert(lastLog.indexOf(`Found following ConfigMaps to be cleaned up: ${k8sObject.metadata.name}`) >= 0);
+    }
+
+    @test()
+    async checkIgnoredHelm() {
+        const helmUpgradeOrInstallActionHandler = new K8sHelmUpgradeOrInstallActionHandler();
+        const cleanupService = Container.get(K8sCleanupService);
+        const assetsDir = join(__dirname, '../../../test/assets');
+        const context = ContextUtil.generateEmptyContext();
+        const snapshot = new ActionSnapshot('.', {}, assetsDir, 0, {});
+
+        const helmOptions = {
+            chart: 'helm/cleanup',
+            name: 'helm-ignored-test',
+        };
+
+        await helmUpgradeOrInstallActionHandler.validate(helmOptions, context, snapshot, {});
+        await helmUpgradeOrInstallActionHandler.execute(helmOptions, context, snapshot, {});
+
+        const cleanupOptions = {
+            dryRun: false,
+            namespace: 'default',
+        };
+
+        await cleanupService.cleanup(cleanupOptions, context, snapshot);
+
+        const listOfHelmsAfterCleanupSameContext = await Container.get(K8sHelmService).listInstalledHelms();
+
+        chai.expect(listOfHelmsAfterCleanupSameContext)
+            .to.be.an('array')
+            .that.includes(helmOptions.name);
+
+        context.entities.registered.pop();
+
+        const cleanupOptionsIgnored = {
+            dryRun: false,
+            namespace: 'default',
+            ignored: {
+                objects: {},
+                helms: ['helm-ignored-test'],
+            },
+        };
+
+        await cleanupService.cleanup(cleanupOptionsIgnored, context, snapshot);
+
+        const listOfHelmsAfterCleanUpIgnored = await Container.get(K8sHelmService).listInstalledHelms();
+
+        chai.expect(listOfHelmsAfterCleanUpIgnored)
+            .to.be.an('array')
+            .that.includes(helmOptions.name);
+
+        await cleanupService.cleanup(cleanupOptions, context, snapshot);
+
+        const listOfHelmsAfterCleanup = await Container.get(K8sHelmService).listInstalledHelms();
+
+        chai.expect(listOfHelmsAfterCleanup)
+            .to.be.an('array')
+            .that.not.includes(helmOptions.name);
+    }
+
+    @test
+    async checkIgnoredK8sObject() {
+        const applyK8sObjectActionHandler = new K8sApplyObjectActionHandler();
+        const cleanupService = Container.get(K8sCleanupService);
+        const context = ContextUtil.generateEmptyContext();
+        const snapshot = new ActionSnapshot('.', {}, '', 0, {});
+        const k8sConfigMapObject = {
+            kind: 'ConfigMap',
+            apiVersion: 'v1',
+            metadata: {
+                namespace: 'default',
+                name: 'configmap-ignored-test',
+            },
+        };
+
+        await applyK8sObjectActionHandler.validate(k8sConfigMapObject, context, snapshot, {});
+        await applyK8sObjectActionHandler.execute(k8sConfigMapObject, context, snapshot, {});
+
+        const cleanupOptions = {
+            dryRun: false,
+            namespace: 'default',
+        };
+
+        await cleanupService.cleanup(cleanupOptions, context, snapshot);
+
+        const listConfigMapsAfterCleanUpSameContext = await Container.get(K8sKubectlService).listObjects(
+            'ConfigMap',
+            'default',
+        );
+
+        chai.expect(listConfigMapsAfterCleanUpSameContext)
+            .to.be.an('array')
+            .that.includes(k8sConfigMapObject.metadata.name);
+
+        context.entities.registered.pop();
+
+        const cleanupOptionsIgnored = {
+            dryRun: false,
+            namespace: 'default',
+            ignored: {
+                objects: {
+                    ConfigMap: ['configmap-ignored-test'],
+                },
+                helms: [''],
+            },
+        };
+
+        await cleanupService.cleanup(cleanupOptionsIgnored, context, snapshot);
+
+        const listConfigMapsAfterCleanUpIgnored = await Container.get(K8sKubectlService).listObjects(
+            'ConfigMap',
+            'default',
+        );
+
+        chai.expect(listConfigMapsAfterCleanUpIgnored)
+            .to.be.an('array')
+            .that.includes(k8sConfigMapObject.metadata.name);
+
+        await cleanupService.cleanup(cleanupOptions, context, snapshot);
+
+        const listConfigMapsAfterCleanUp = await Container.get(K8sKubectlService).listObjects('ConfigMap', 'default');
+
+        chai.expect(listConfigMapsAfterCleanUp)
+            .to.be.an('array')
+            .that.not.includes(k8sConfigMapObject.metadata.name);
     }
 
     private async applyTestObjects(deployedObject: object, clusterObject: object, kind: string) {
