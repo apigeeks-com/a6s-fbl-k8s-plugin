@@ -204,11 +204,11 @@ export class K8sHelmService {
             throw new Error(helmResult.stdout);
         }
 
-        helmResult.stdout
+        const lines = helmResult.stdout
             .replace('COMPUTED VALUES', 'COMPUTE-VALUES')
-            .replace('USER-SUPPLIED VALUES', 'USER-SUPPLIED-VALUES');
-
-        const lines = helmResult.stdout.split('\n').map(l => l.trim());
+            .replace('USER-SUPPLIED VALUES', 'USER-SUPPLIED-VALUES')
+            .split('\n')
+            .map(l => l.trim());
 
         const revisionKey = 'REVISION: ';
         const releasedKey = 'RELEASED: ';
