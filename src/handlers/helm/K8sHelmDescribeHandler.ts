@@ -58,7 +58,7 @@ export class K8sHelmDescribeHandler extends ActionHandler {
         }
 
         if (get(options, 'objects.assignTo') || get(options, 'objects.pushTo')) {
-            const helmObjects = await Container.get(K8sHelmService).getHelmDeployment(options.name);
+            const helmObjects = await Container.get(K8sHelmService).getHelmObjects(options.name);
 
             if (get(options, 'objects.assignTo')) {
                 await ContextUtil.assignTo(context, parameters, snapshot, options.objects.assignTo, helmObjects);
