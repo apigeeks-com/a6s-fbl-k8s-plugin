@@ -19,11 +19,11 @@ export class K8sHelmDescribeHandler extends ActionHandler {
         chart: Joi.object({
             assignTo: FBL_ASSIGN_TO_SCHEMA,
             pushTo: FBL_PUSH_TO_SCHEMA,
-        }),
+        }).or('assignTo', 'pushTo'),
         objects: Joi.object({
             assignTo: FBL_ASSIGN_TO_SCHEMA,
             pushTo: FBL_PUSH_TO_SCHEMA,
-        }),
+        }).or('assignTo', 'pushTo'),
     })
         .required()
         .options({
@@ -45,28 +45,18 @@ export class K8sHelmDescribeHandler extends ActionHandler {
         snapshot: ActionSnapshot,
         parameters: IDelegatedParameters,
     ): Promise<void> {
-        if (get(options, 'chart.assignTo') || get(options, 'chart.pushTo')) {
+        if (options.chart) {
             const deployment = await Container.get(K8sHelmService).getHelmDeployment(options.name);
 
-            if (get(options, 'chart.assignTo')) {
-                await ContextUtil.assignTo(context, parameters, snapshot, options.chart.assignTo, deployment);
-            }
-
-            if (get(options, 'chart.pushTo')) {
-                await ContextUtil.pushTo(context, parameters, snapshot, options.chart.pushTo, deployment);
-            }
+            await ContextUtil.assignTo(context, parameters, snapshot, options.chart.assignTo, deployment);
+            await ContextUtil.pushTo(context, parameters, snapshot, options.chart.pushTo, deployment);
         }
 
-        if (get(options, 'objects.assignTo') || get(options, 'objects.pushTo')) {
+        if (options.objects) {
             const helmObjects = await Container.get(K8sHelmService).getHelmObjects(options.name);
 
-            if (get(options, 'objects.assignTo')) {
-                await ContextUtil.assignTo(context, parameters, snapshot, options.objects.assignTo, helmObjects);
-            }
-
-            if (get(options, 'objects.pushTo')) {
-                await ContextUtil.pushTo(context, parameters, snapshot, options.objects.pushTo, helmObjects);
-            }
+            await ContextUtil.assignTo(context, parameters, snapshot, options.objects.assignTo, helmObjects);
+            await ContextUtil.pushTo(context, parameters, snapshot, options.objects.pushTo, helmObjects);
         }
     }
 }
