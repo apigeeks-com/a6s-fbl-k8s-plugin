@@ -3,9 +3,7 @@ import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import { suite, test } from 'mocha-typescript';
 import { Container } from 'typedi';
-import { FlowService } from 'fbl/dist/src/services';
-import { ActionSnapshot, IActionStep } from 'fbl/dist/src/models';
-import { ContextUtil } from 'fbl/dist/src/utils';
+import { FlowService, ActionSnapshot, IActionStep, ContextUtil } from 'fbl';
 
 import { K8sCleanupActionHandler, K8sHelmUpgradeOrInstallActionHandler } from '../../src/handlers';
 import { K8sApplyObjectActionHandler } from '../../src/handlers/kubectl';

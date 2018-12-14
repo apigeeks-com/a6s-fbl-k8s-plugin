@@ -6,9 +6,7 @@ import { promisify } from 'util';
 import { writeFile } from 'fs';
 import { basename } from 'path';
 import { suite, test } from 'mocha-typescript';
-import { ContextUtil } from 'fbl/dist/src/utils';
-import { ActionSnapshot } from 'fbl/dist/src/models';
-import { TempPathsRegistry } from 'fbl/dist/src/services';
+import { ContextUtil, ActionSnapshot, TempPathsRegistry } from 'fbl';
 
 import { K8sApplyConfigMapActionHandler } from '../../../src/handlers/kubectl';
 import { K8sKubectlService } from '../../../src/services';
