@@ -47,7 +47,7 @@ class K8sDeleteObjectActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
             actionHandler.validate(
                 {
                     kind: 'CustomObject',
-                    metadata: {},
+                    name: '',
                 },
                 context,
                 snapshot,
@@ -65,9 +65,7 @@ class K8sDeleteObjectActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
         await actionHandler.validate(
             {
                 kind: 'CustomObject',
-                metadata: {
-                    name: 'test',
-                },
+                name: 'test',
             },
             context,
             snapshot,
@@ -115,8 +113,12 @@ class K8sDeleteObjectActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
         assert.strictEqual(context.entities.created.length, 1);
 
         // delete object
-        await deleteActionHandler.validate(obj, context, snapshot, {});
-        await deleteActionHandler.execute(obj, context, snapshot, {});
+        const options = {
+            kind: 'ConfigMap',
+            name: 'delete-obj-test',
+        };
+        await deleteActionHandler.validate(options, context, snapshot, {});
+        await deleteActionHandler.execute(options, context, snapshot, {});
 
         result = await Container.get(K8sKubectlService).execKubectlCommand([
             'get',
