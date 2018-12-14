@@ -203,7 +203,7 @@ export class K8sHelmService {
             throw new Error(helmResult.stdout);
         }
 
-        const matches = helmResult.stdout.split(/^(\b[A-Z]{2,}\s?.*?):/gm);
+        const matches = helmResult.stdout.split(/^([A-Z]{2,}[^:]+):/gm);
 
         matches.shift();
         const chanks = lodashChunk<string>(matches, 2);
