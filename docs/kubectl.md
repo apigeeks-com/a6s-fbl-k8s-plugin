@@ -259,11 +259,8 @@ kubectl.get:
     name: test
     # [optional] k8s namespace
     namespace: default
-  # assign object to context field(s)
-  assignObjectTo:
-    # [optional] "ctx" path to assign object to
-    ctx: $.path
-    # [optional] "secrets" path to assign object to
-    secrets: $.path
+  # one of "assignTo" or "pushTo" are [required]
+  assignTo: # follows common assign logic practices https://fbl.fireblink.com/plugins/common#assign-to
+  pushTo: # follows common push logic practices https://fbl.fireblink.com/plugins/common#push-to
 # Note any additional fields are allowed, but will be ignored
 ```

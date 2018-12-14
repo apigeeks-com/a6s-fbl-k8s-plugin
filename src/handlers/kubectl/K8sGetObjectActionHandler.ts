@@ -10,6 +10,7 @@ import {
 } from 'fbl';
 
 import { K8sKubectlService } from '../../services';
+import { FBL_ASSIGN_TO_SCHEMA, FBL_PUSH_TO_SCHEMA } from 'fbl';
 
 export class K8sGetObjectActionHandler extends ActionHandler {
     private static metadata = <IActionHandlerMetadata>{
@@ -21,14 +22,8 @@ export class K8sGetObjectActionHandler extends ActionHandler {
         kind: Joi.string()
             .min(1)
             .required(),
-        assignObjectTo: Joi.object({
-            ctx: Joi.string()
-                .regex(/^\$\.[^.]+(\.[^.]+)*$/)
-                .min(1),
-            secrets: Joi.string()
-                .regex(/^\$\.[^.]+(\.[^.]+)*$/)
-                .min(1),
-        }).required(),
+        assignTo: FBL_ASSIGN_TO_SCHEMA,
+        pushTo: FBL_PUSH_TO_SCHEMA,
         metadata: Joi.object({
             name: Joi.string()
                 .min(1)
@@ -40,6 +35,7 @@ export class K8sGetObjectActionHandler extends ActionHandler {
                 allowUnknown: true,
             }),
     })
+        .or('assignTo', 'pushTo')
         .required()
         .options({
             allowUnknown: true,
@@ -62,15 +58,8 @@ export class K8sGetObjectActionHandler extends ActionHandler {
     ): Promise<void> {
         const object = await Container.get(K8sKubectlService).getObject(options);
 
-        /* istanbul ignore else */
-        if (options.assignObjectTo.ctx) {
-            await ContextUtil.assignToField(context.ctx, options.assignObjectTo.ctx, object, false);
-        }
-
-        /* istanbul ignore else */
-        if (options.assignObjectTo.secrets) {
-            await ContextUtil.assignToField(context.secrets, options.assignObjectTo.secrets, object, false);
-        }
+        await ContextUtil.assignTo(context, parameters, snapshot, options.assignTo, object);
+        await ContextUtil.pushTo(context, parameters, snapshot, options.pushTo, object);
 
         snapshot.setContext(context);
     }
