@@ -260,17 +260,7 @@ kubectl.get:
     # [optional] k8s namespace
     namespace: default
   # one of "assignTo" or "pushTo" are [required]
-  # follows common assign logic practices https://fbl.fireblink.com/plugins/common#assign-to
-  assignTo:
-    # [optional] "ctx" path to assign object to
-    ctx: $.path
-    # [optional] "secrets" path to assign object to
-    secrets: $.path
-  # follows common push logic practices https://fbl.fireblink.com/plugins/common#push-to
-  pushTo:
-    # [optional] "ctx" path to push object to
-    ctx: $.path
-    # [optional] "secrets" path to push object to
-    secrets: $.path
+  assignTo: # follows common assign logic practices https://fbl.fireblink.com/plugins/common#assign-to
+  pushTo: # follows common push logic practices https://fbl.fireblink.com/plugins/common#push-to
 # Note any additional fields are allowed, but will be ignored
 ```
