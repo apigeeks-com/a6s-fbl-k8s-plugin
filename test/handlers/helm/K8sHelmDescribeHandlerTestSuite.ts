@@ -96,12 +96,34 @@ class K8sHelmDescribeHandlerTestSuite extends K8sHelmBaseTestSuite {
         await actionHandler.validate(options, context, snapshot, {});
         await actionHandler.execute(options, context, snapshot, {});
 
-        const expectedResult = {
+        const expectedResult: any = {
             revision: '1',
             released: context.ctx.chart.assignTo.released, // The date is always different can not be reliably verified
             chart: 'sample-0.1.0',
             userSuppliedValues: {},
-            computedValues: {},
+            computedValues: {
+                affinity: {},
+                image: {
+                    pullPolicy: 'IfNotPresent',
+                    repository: 'nginx',
+                    tag: 'stable',
+                },
+                ingress: {
+                    annotations: {},
+                    enabled: false,
+                    hosts: ['chart-example.local'],
+                    path: '/',
+                    tls: [],
+                },
+                nodeSelector: {},
+                replicaCount: 1,
+                resources: {},
+                service: {
+                    port: 80,
+                    type: 'ClusterIP',
+                },
+                tolerations: [],
+            },
         };
 
         assert.deepStrictEqual(context.ctx.chart.assignTo, expectedResult);
