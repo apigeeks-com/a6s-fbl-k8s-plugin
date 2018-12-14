@@ -259,11 +259,18 @@ kubectl.get:
     name: test
     # [optional] k8s namespace
     namespace: default
+  # one of "assignTo" or "pushTo" are [required]
   # assign object to context field(s)
-  assignObjectTo:
+  assignTo:
     # [optional] "ctx" path to assign object to
     ctx: $.path
     # [optional] "secrets" path to assign object to
+    secrets: $.path
+  # push object to context field(s)
+  pushTo:
+    # [optional] "ctx" path to push object to
+    ctx: $.path
+    # [optional] "secrets" path to push object to
     secrets: $.path
 # Note any additional fields are allowed, but will be ignored
 ```
