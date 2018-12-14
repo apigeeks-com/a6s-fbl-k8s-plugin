@@ -8,5 +8,14 @@ dist/
 coverage/
 .nyc_output/
 
+.commitlintrc.yml
+.czrc
+.huskyrc.yml
+.lintstagedrc.yml
+.prettierignore
+.prettierrc.yml
+CODEOWNERS
+CHANGELOG.md
+
 Dockerfile
 LICENSE
