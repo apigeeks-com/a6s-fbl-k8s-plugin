@@ -1,7 +1,5 @@
 import Container from 'typedi';
-import { ContextUtil } from 'fbl/dist/src/utils';
-import { ActionSnapshot } from 'fbl/dist/src/models';
-import { TempPathsRegistry } from 'fbl/dist/src/services';
+import { ContextUtil, ActionSnapshot, TempPathsRegistry } from 'fbl';
 
 import { K8sCleanupService } from '../../src/services';
 

@@ -1,9 +1,7 @@
 import * as Joi from 'joi';
 import { Container } from 'typedi';
 import { basename } from 'path';
-import { ActionHandler, ActionSnapshot } from 'fbl/dist/src/models';
-import { IContext, IActionHandlerMetadata, IDelegatedParameters } from 'fbl/dist/src/interfaces';
-import { FSUtil } from 'fbl/dist/src/utils';
+import { ActionHandler, ActionSnapshot, IContext, IActionHandlerMetadata, IDelegatedParameters, FSUtil } from 'fbl';
 
 import { K8sKubectlService } from '../../services';
 import { IK8sObject } from '../../interfaces';

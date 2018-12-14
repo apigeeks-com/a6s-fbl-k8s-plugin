@@ -1,4 +1,4 @@
-import { IPlugin } from 'fbl/dist/src/interfaces';
+import { IPlugin } from 'fbl';
 import {
     K8sHelmDeleteActionHandler,
     K8sHelmDescribeHandler,
