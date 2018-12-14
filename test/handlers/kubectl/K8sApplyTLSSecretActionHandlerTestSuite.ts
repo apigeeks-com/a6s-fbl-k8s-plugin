@@ -6,9 +6,7 @@ import { promisify } from 'util';
 import { readFile } from 'fs';
 import { join } from 'path';
 import { suite, test } from 'mocha-typescript';
-import { ContextUtil, FSUtil } from 'fbl/dist/src/utils';
-import { ActionSnapshot } from 'fbl/dist/src/models';
-import { TempPathsRegistry } from 'fbl/dist/src/services';
+import { ContextUtil, FSUtil, ActionSnapshot, TempPathsRegistry } from 'fbl';
 
 import { K8sApplyTLSSecretActionHandler } from '../../../src/handlers/kubectl';
 import { K8sKubectlService } from '../../../src/services';

@@ -3,9 +3,7 @@ import { Inject, Service } from 'typedi';
 import { promisify } from 'util';
 import { exists, writeFile } from 'fs';
 import { dump } from 'js-yaml';
-import { ChildProcessService, TempPathsRegistry } from 'fbl/dist/src/services';
-import { FSUtil } from 'fbl/dist/src/utils';
-import { IContext, IContextEntity } from 'fbl/dist/src/interfaces';
+import { ChildProcessService, TempPathsRegistry, FSUtil, IContext, IContextEntity } from 'fbl';
 
 import { IHelmChart, IHelmDeploymentInfo, IK8sObject, IExecOutput } from '../interfaces';
 

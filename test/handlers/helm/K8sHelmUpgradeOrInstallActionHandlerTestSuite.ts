@@ -4,8 +4,7 @@ import * as chaiAsPromised from 'chai-as-promised';
 import { suite, test } from 'mocha-typescript';
 import { Container } from 'typedi';
 import { join } from 'path';
-import { ContextUtil } from 'fbl/dist/src/utils';
-import { ActionSnapshot } from 'fbl/dist/src/models';
+import { ContextUtil, ActionSnapshot } from 'fbl';
 
 import { K8sHelmUpgradeOrInstallActionHandler } from '../../../src/handlers/helm';
 import { K8sHelmService } from '../../../src/services/';

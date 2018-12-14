@@ -1,10 +1,8 @@
 import * as Joi from 'joi';
 import Container from 'typedi';
-import { ActionHandler, ActionSnapshot } from 'fbl/dist/src/models';
-import { IContext, IActionHandlerMetadata, IDelegatedParameters } from 'fbl/dist/src/interfaces';
-import { K8sCleanupService } from '../services';
+import { ActionHandler, ActionSnapshot, IContext, IActionHandlerMetadata, IDelegatedParameters } from 'fbl';
 
-const packageJson = require('../../../package.json');
+import { K8sCleanupService } from '../services';
 
 export class K8sCleanupActionHandler extends ActionHandler {
     /**
@@ -12,7 +10,6 @@ export class K8sCleanupActionHandler extends ActionHandler {
      */
     private metadata = <IActionHandlerMetadata>{
         id: 'a6s.k8s.cleanup',
-        version: packageJson.version,
         aliases: ['k8s.cleanup'],
     };
 
