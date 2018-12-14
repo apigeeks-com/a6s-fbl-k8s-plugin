@@ -3,6 +3,7 @@ import { Container } from 'typedi';
 import { ActionHandler, ActionSnapshot, IContext, IActionHandlerMetadata, IDelegatedParameters } from 'fbl';
 
 import { K8sKubectlService } from '../../services';
+import { IK8sObject } from '../../interfaces';
 
 export class K8sDeleteObjectActionHandler extends ActionHandler {
     private static metadata = <IActionHandlerMetadata>{
@@ -14,16 +15,10 @@ export class K8sDeleteObjectActionHandler extends ActionHandler {
         kind: Joi.string()
             .min(1)
             .required(),
-        metadata: Joi.object({
-            name: Joi.string()
-                .min(1)
-                .required(),
-            namespace: Joi.string().min(1),
-        })
-            .required()
-            .options({
-                allowUnknown: true,
-            }),
+        name: Joi.string()
+            .min(1)
+            .required(),
+        namespace: Joi.string().min(1),
     })
         .required()
         .options({
@@ -45,6 +40,18 @@ export class K8sDeleteObjectActionHandler extends ActionHandler {
         snapshot: ActionSnapshot,
         parameters: IDelegatedParameters,
     ): Promise<void> {
-        await Container.get(K8sKubectlService).deleteObject(options, context);
+        const obj: IK8sObject = {
+            apiVersion: 'v1',
+            kind: options.kind,
+            metadata: {
+                name: options.name,
+            },
+        };
+
+        if (options.namespace) {
+            obj.metadata.namespace = options.namespace;
+        }
+
+        await Container.get(K8sKubectlService).deleteObject(obj, context);
     }
 }
