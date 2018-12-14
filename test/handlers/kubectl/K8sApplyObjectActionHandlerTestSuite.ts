@@ -3,8 +3,7 @@ import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import { Container } from 'typedi';
 import { suite, test } from 'mocha-typescript';
-import { ContextUtil } from 'fbl/dist/src/utils';
-import { ActionSnapshot } from 'fbl/dist/src/models';
+import { ContextUtil, ActionSnapshot } from 'fbl';
 
 import { K8sApplyObjectActionHandler } from '../../../src/handlers/kubectl';
 import { K8sKubectlService } from '../../../src/services';

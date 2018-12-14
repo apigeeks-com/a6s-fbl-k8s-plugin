@@ -3,8 +3,7 @@ import { Inject, Service } from 'typedi';
 import { promisify } from 'util';
 import { writeFile } from 'fs';
 import { dump } from 'js-yaml';
-import { IContext, IContextEntity } from 'fbl/dist/src/interfaces';
-import { ChildProcessService, TempPathsRegistry } from 'fbl/dist/src/services';
+import { IContext, IContextEntity, ChildProcessService, TempPathsRegistry } from 'fbl';
 
 import { IK8sBulkDelete, IK8sObject, IExecOutput } from '../interfaces';
 

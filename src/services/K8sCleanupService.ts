@@ -1,8 +1,7 @@
 import * as minimatch from 'minimatch';
 import { difference, get, flattenDeep } from 'lodash';
 import { Service, Inject } from 'typedi';
-import { ActionSnapshot } from 'fbl/dist/src/models';
-import { IContext } from 'fbl/dist/src/interfaces';
+import { ActionSnapshot, IContext } from 'fbl';
 
 import { IK8sCleanupOptions, IK8sObject } from '../interfaces';
 import { K8sHelmService } from './K8sHelmService';

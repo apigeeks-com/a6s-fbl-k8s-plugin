@@ -2,11 +2,24 @@
 *.iml
 
 .nyc_output/
+.commitlintrc.yml
+.czrc
+.huskyrc.yml
+.lintstagedrc.yml
+.prettierignore
+.prettierrc.yml
+CODEOWNERS
+CHANGELOG.md
 coverage/
 mochawesome-report/
 node_modules/
 
 .gitignore
+
+docker-compose.yml
+docker-run-tests
+Dockerfile
+wrapdocker
 
 src/
 test/
