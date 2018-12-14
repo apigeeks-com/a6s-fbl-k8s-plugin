@@ -1,5 +1,6 @@
 import * as yaml from 'js-yaml';
 import { Inject, Service } from 'typedi';
+import { chunk as lodashChunk, zipObject } from 'lodash';
 import { promisify } from 'util';
 import { exists, writeFile } from 'fs';
 import { dump } from 'js-yaml';
@@ -202,66 +203,18 @@ export class K8sHelmService {
             throw new Error(helmResult.stdout);
         }
 
-        const lines = helmResult.stdout
-            .replace('COMPUTED VALUES', 'COMPUTE-VALUES')
-            .replace('USER-SUPPLIED VALUES', 'USER-SUPPLIED-VALUES')
-            .split('\n')
-            .map(l => l.trim());
+        const matches = helmResult.stdout.split(/^(\b[A-Z]{2,}\s?.*?):/gm);
 
-        const userSuppliedValuesKey = 'USER-SUPPLIED VALUES:';
-        const computedValuesKey = 'COMPUTED VALUES:';
-
-        const userValuesLine = lines.find(l => l.indexOf(userSuppliedValuesKey) === 0);
-        const computedValuesLine = lines.find(l => l.indexOf(computedValuesKey) === 0);
-
-        let userSuppliedValues = {};
-        let computedValues = {};
-
-        if (userValuesLine) {
-            let idx = lines.indexOf(userValuesLine);
-            const values = [];
-
-            while (lines[++idx]) {
-                const line = lines[idx].trimRight();
-
-                if (line.length) {
-                    values.push(line);
-                }
-            }
-
-            userSuppliedValues = yaml.safeLoad(values.join('\n')) || {};
-        }
-
-        if (computedValuesLine) {
-            let idx = lines.indexOf(computedValuesLine);
-            const values = [];
-
-            while (lines[++idx]) {
-                const line = lines[idx].trimRight();
-
-                if (line.length) {
-                    values.push(line);
-                }
-            }
-
-            computedValues = yaml.safeLoad(values.join('\n')) || {};
-        }
-
-        const searchValue = (text: string, label: string) => {
-            const value = text.split(new RegExp(`^${label}:\s*(.+?)^[A-Z]{2,}`, 'gmus'))[1];
-
-            if (value) {
-                return value.replace(/\n/gs, '');
-            }
-        };
+        matches.shift();
+        const chanks = lodashChunk<string>(matches, 2);
+        const result = zipObject(chanks.map(e => e[0].trim()), chanks.map(e => e[1].trim()));
 
         return <IHelmDeploymentInfo>{
-            revision: searchValue(helmResult.stdout, 'REVISION'),
-            released:
-                searchValue(helmResult.stdout, 'RELEASED') && new Date(searchValue(helmResult.stdout, 'RELEASED')),
-            chart: searchValue(helmResult.stdout, 'CHART'),
-            userSuppliedValues: userSuppliedValues,
-            computedValues: computedValues,
+            revision: result['REVISION'].replace(/\n/g, ''),
+            released: result['RELEASED'] && new Date(result['RELEASED'].replace(/\n/g, '')),
+            chart: result['CHART'].replace(/\n/g, ''),
+            userSuppliedValues: result['USER-SUPPLIED VALUES'] && (yaml.safeLoad(result['USER-SUPPLIED VALUES']) || {}),
+            computedValues: result['COMPUTED VALUES'] && (yaml.safeLoad(result['COMPUTED VALUES']) || {}),
         };
     }
 }
