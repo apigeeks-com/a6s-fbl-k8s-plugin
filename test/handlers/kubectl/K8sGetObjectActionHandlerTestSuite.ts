@@ -47,35 +47,7 @@ class K8sGetObjectActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
             actionHandler.validate(
                 {
                     kind: 'CustomObject',
-                    metadata: {},
-                },
-                context,
-                snapshot,
-                {},
-            ),
-        ).to.be.rejected;
-
-        await chai.expect(
-            actionHandler.validate(
-                {
-                    kind: 'CustomObject',
-                    metadata: {
-                        name: 'test',
-                    },
-                },
-                context,
-                snapshot,
-                {},
-            ),
-        ).to.be.rejected;
-
-        await chai.expect(
-            actionHandler.validate(
-                {
-                    kind: 'CustomObject',
-                    metadata: {
-                        name: 'test',
-                    },
+                    name: '',
                 },
                 context,
                 snapshot,
@@ -93,9 +65,7 @@ class K8sGetObjectActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
         await actionHandler.validate(
             {
                 kind: 'CustomObject',
-                metadata: {
-                    name: 'test',
-                },
+                name: 'test',
                 assignTo: {
                     ctx: '$.test',
                 },
@@ -145,9 +115,7 @@ class K8sGetObjectActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
         // get object
         const options = {
             kind: obj.kind,
-            metadata: {
-                name: obj.metadata.name,
-            },
+            name: obj.metadata.name,
             assignTo: {
                 ctx: '$.test',
                 secrets: '$.test',
