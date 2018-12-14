@@ -97,7 +97,7 @@ class K8sGetObjectActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
                 metadata: {
                     name: 'test',
                 },
-                assignObjectTo: {
+                assignTo: {
                     ctx: '$.test',
                 },
             },
@@ -149,9 +149,12 @@ class K8sGetObjectActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
             metadata: {
                 name: obj.metadata.name,
             },
-            assignObjectTo: {
+            assignTo: {
                 ctx: '$.test',
                 secrets: '$.test',
+            },
+            pushTo: {
+                ctx: '$.testPush',
             },
         };
         await getActionHandler.validate(options, context, snapshot, {});
@@ -160,6 +163,7 @@ class K8sGetObjectActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
         assert.strictEqual(context.ctx.test.kind, obj.kind);
         assert.strictEqual(context.ctx.test.kind, obj.kind);
         assert.deepStrictEqual(context.ctx.test.data, obj.data);
+        assert.deepStrictEqual(context.ctx.testPush[0].kind, obj.kind);
 
         assert.strictEqual(context.secrets.test.kind, obj.kind);
         assert.strictEqual(context.secrets.test.kind, obj.kind);
