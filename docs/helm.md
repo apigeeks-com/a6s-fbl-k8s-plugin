@@ -16,14 +16,18 @@ Allows to use common helm commands inside fbl flow.
 
 ```yaml
 helm.install:
-  # chart name or relative path
+  # [required]  chart name or relative path
   chart: stable/jenkins
+
   # [optional] release name (if not provided - helm will give a random one, it is highly recommended to provide own one)
   name: jenkins
+
   # [optional] k8s namespace to use
   namespace: default
+
   # [optional] chart version
   version: 1.0.0
+
   # [optional] chart variables
   variables:
     # [optional] define values inline
@@ -37,11 +41,14 @@ helm.install:
 
     # [optional] whether to wait for helm chart to be installed
     wait: true
+
     # [optional] timeout in seconds - min 0, max 3600 (1 hour)
     timeout: 300
 ```
 
 ## Action Handler: Helm Delete
+
+Delete helm release. Note '--purge' command line option is used under the hood.
 
 **ID:** a6s.k8s.helm.delete
 
@@ -60,6 +67,8 @@ helm.delete:
 
 ## Action Handler: Helm Describe
 
+Describe helm release. Allows to find helm release information and all k8s objects associated with it.
+
 **ID:** a6s.k8s.helm.describe
 
 **Aliases:**
@@ -73,10 +82,12 @@ helm.delete:
 helm.describe:
   # [required] helm chart release name
   name: ftpo
-  # [optional] define paths to store chart information
+
+  # [optional] define paths to store release information
   chart:
     assignTo: '$.ctx.chart'
     pushTo: '$.ctx.chart'
+
   # [optional] define paths to store helm k8s objects
   objects:
     assignTo: '$.ctx.chart'

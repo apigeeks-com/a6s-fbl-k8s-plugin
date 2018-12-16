@@ -16,9 +16,10 @@ Allows to use common kubectl commands inside fbl flow.
 
 ```yaml
 kubectl.ConfigMap:
-  # Name of the ConfigMap
+  # [required] Name of the ConfigMap
   name: application-config-map
   # [optional] K8s namespace
+  # Default value: default
   namespace: default
   # [optional] files to apply
   files:
@@ -48,13 +49,13 @@ kubectl.ConfigMap:
 
 ```yaml
 kubectl.Secret:
-  # Name of the ConfigMap
+  # [required] Name of the Secret
   name: application-secret
   # [optional] K8s namespace
   namespace: default
   # [optional] files to apply
   files:
-    # note: just like with kubectl test.yml will be used as key inside the ConfigMap
+    # note: just like with kubectl test.yml will be used as key inside the Secret
     # make sure not to pass paths to files with same name
     - some/path/to/test.yml
   # [optional] define config map values inline (key/value pairs)
@@ -80,17 +81,17 @@ kubectl.Secret:
 
 ```yaml
 kubectl.Secret.docker:
-  # secret name
+  # [required] secret name
   name: docker-secret
   # [optional] k8s namespace
   namespace: default
 
-  # docker registry host
+  # [required] docker registry host
   server: docker.foo.bar.com
-  # docker registry user credentials
+  # [required]  docker registry user credentials
   username: root
   password: toor
-  # docker user email address
+  # [required] docker user email address
   email: foo@bar.com
 ```
 
@@ -108,7 +109,7 @@ kubectl.Secret.docker:
 
 ```yaml
 kubectl.Secret.tls:
-  # secret name
+  # [required]  secret name
   name: docker-secret
   # [optional] k8s namespace
   namespace: default
@@ -184,10 +185,16 @@ kubectl.Secret.tls:
 
 ```yaml
 kubectl.apply:
+  # [required] k8s object kind
   kind: ObjectKind
+  # [required] API version
   apiVersion: v1
+  # [required] object metadata
   metadata:
+    # [required] object name
     name: test
+    # [optional] namespace
+    namespace: lab
   # all other fields are optional for the plugin, but may be required by K8s itself
   # please reference object related documentation for what fields should be provided
 ```
@@ -205,14 +212,12 @@ kubectl.apply:
 
 ```yaml
 kubectl.delete:
-  # object type
+  # [required]  object type
   kind: ObjectKind
-  metadata:
-    # object name
-    name: test
-    # [optional] k8s namespace
-    namespace: default
-# Note any additional fields are allowed, but will be ignored
+  # [required]  object name
+  name: test
+  # [optional] k8s namespace
+  namespace: default
 ```
 
 ## Action Handler: Bulk Delete K8s Object
@@ -228,11 +233,11 @@ kubectl.delete:
 
 ```yaml
 kubectl.delete.bulk:
-  # object type
+  # [required] object type
   kind: ObjectKind
   # [optional] k8s namespace
   namespace: default
-  # minimatch patterns for object names
+  # [required]  minimatch patterns for object names
   names:
     - 'test-*'
 ```
@@ -252,15 +257,13 @@ Find K8s object and assign it to context field(s)
 
 ```yaml
 kubectl.get:
-  # object type
+  # [required] object type
   kind: ObjectKind
-  metadata:
-    # object name
-    name: test
-    # [optional] k8s namespace
-    namespace: default
-  # one of "assignTo" or "pushTo" are [required]
+  # [required]  object name
+  name: test
+  # [optional] k8s namespace
+  namespace: default
+  # either one of "assignTo" or "pushTo" is required
   assignTo: # follows common assign logic practices https://fbl.fireblink.com/plugins/common#assign-to
   pushTo: # follows common push logic practices https://fbl.fireblink.com/plugins/common#push-to
-# Note any additional fields are allowed, but will be ignored
 ```

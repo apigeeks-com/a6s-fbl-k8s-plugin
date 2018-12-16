@@ -52,6 +52,7 @@ export class K8sHelmDescribeHandler extends ActionHandler {
         snapshot: ActionSnapshot,
         parameters: IDelegatedParameters,
     ): Promise<void> {
+        /* istanbul ignore else */
         if (options.chart) {
             const deployment = await Container.get(K8sHelmService).getHelmDeployment(options.name);
 
@@ -59,6 +60,7 @@ export class K8sHelmDescribeHandler extends ActionHandler {
             await ContextUtil.pushTo(context, parameters, snapshot, options.chart.pushTo, deployment);
         }
 
+        /* istanbul ignore else */
         if (options.objects) {
             const helmObjects = await Container.get(K8sHelmService).getHelmObjects(options.name);
 
