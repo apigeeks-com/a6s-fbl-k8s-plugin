@@ -74,4 +74,29 @@ class K8sHelmUpgradeOrInstallActionHandlerTestSuite extends K8sHelmBaseTestSuite
 
         assert.deepStrictEqual(result.stdout.trim(), options.name);
     }
+
+    @test()
+    async checkVariablesInline() {
+        const assetsDir = join(__dirname, '../../../../test/assets');
+
+        const actionHandler = new K8sHelmUpgradeOrInstallActionHandler();
+        const context = ContextUtil.generateEmptyContext();
+        const snapshot = new ActionSnapshot('.', {}, assetsDir, 0, {});
+
+        const options = {
+            chart: 'helm/sample',
+            name: 'helm-test-var-inline',
+            variables: {
+                inline: {
+                    hosts: ['alfa', 'beta'],
+                },
+            },
+        };
+
+        await actionHandler.validate(options, context, snapshot, {});
+        await actionHandler.execute(options, context, snapshot, {});
+
+        assert.deepStrictEqual(context.entities.registered[0].payload, options);
+        assert.deepStrictEqual(context.entities.updated[0].payload, options);
+    }
 }
