@@ -61,6 +61,10 @@ class K8sHelmUpgradeOrInstallActionHandlerTestSuite extends K8sHelmBaseTestSuite
         const options = {
             chart: 'helm/sample',
             name: 'helm-test',
+            namespace: 'helm-test',
+            tillerNamespace: 'kube-system',
+            wait: true,
+            timeout: 400,
         };
 
         await actionHandler.validate(options, context, snapshot, {});
@@ -73,6 +77,7 @@ class K8sHelmUpgradeOrInstallActionHandlerTestSuite extends K8sHelmBaseTestSuite
         }
 
         assert.deepStrictEqual(result.stdout.trim(), options.name);
+        assert.deepStrictEqual(context.entities.registered[0].payload, options);
     }
 
     @test()
@@ -88,7 +93,7 @@ class K8sHelmUpgradeOrInstallActionHandlerTestSuite extends K8sHelmBaseTestSuite
             name: 'helm-test-var-inline',
             variables: {
                 inline: {
-                    hosts: ['alfa', 'beta'],
+                    hosts: ['alpha', 'beta'],
                 },
             },
         };
