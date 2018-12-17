@@ -13,6 +13,7 @@ export class K8sHelmUpgradeOrInstallActionHandler extends ActionHandler {
     private static schema = Joi.object({
         name: Joi.string(),
         namespace: Joi.string(),
+        tillerNamespace: Joi.string(),
         chart: Joi.string().required(),
         version: Joi.string(),
         variables: Joi.object({
