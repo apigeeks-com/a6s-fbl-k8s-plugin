@@ -152,6 +152,10 @@ class K8sDeleteObjectActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
 
         await deleteActionHandler.validate(options, context, snapshot, {});
 
-        await chai.expect(deleteActionHandler.execute(options, context, snapshot, {})).to.be.rejected;
+        await chai
+            .expect(deleteActionHandler.execute(options, context, snapshot, {}))
+            .to.be.rejectedWith(
+                `Unexpected error occurred {"code":1,"stdout":"","stderr":"error: the server doesn't have a resource type`,
+            );
     }
 }

@@ -108,7 +108,9 @@ class K8sApplyObjectActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
 
         await actionHandler.validate(obj, context, snapshot, {});
 
-        await chai.expect(actionHandler.execute(obj, context, snapshot, {})).to.be.rejected;
+        await chai
+            .expect(actionHandler.execute(obj, context, snapshot, {}))
+            .to.be.rejectedWith(`Unable to apply K8s object with name: custom-obj-test and kind:`);
     }
 
     @test()
