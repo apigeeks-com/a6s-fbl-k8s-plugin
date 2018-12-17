@@ -104,4 +104,49 @@ class K8sHelmUpgradeOrInstallActionHandlerTestSuite extends K8sHelmBaseTestSuite
         assert.deepStrictEqual(context.entities.registered[0].payload, options);
         assert.deepStrictEqual(context.entities.updated[0].payload, options);
     }
+
+    @test()
+    async checkRemoveFail() {
+        const context = ContextUtil.generateEmptyContext();
+        const helmName = 'fake-helm-name';
+
+        await chai.expect(Container.get(K8sHelmService).remove(helmName, context)).to.be.rejectedWith(helmName);
+    }
+
+    @test()
+    async checkUpdateOrInstallFail() {
+        const assetsDir = join(process.cwd(), 'test/assets');
+
+        const actionHandler = new K8sHelmUpgradeOrInstallActionHandler();
+        const context = ContextUtil.generateEmptyContext();
+        const snapshot = new ActionSnapshot('.', {}, assetsDir, 0, {});
+
+        const options = {
+            chart: 'helm/sample',
+            name: 'helm-check-update-or-install-fail',
+            variables: {
+                files: ['/fake/file/path'],
+            },
+        };
+
+        await actionHandler.validate(options, context, snapshot, {});
+
+        await chai
+            .expect(actionHandler.execute(options, context, snapshot, {}))
+            .to.be.rejectedWith(options.variables.files[0]);
+    }
+
+    @test
+    async checkGetHelmObjectsFail() {
+        await chai
+            .expect(Container.get(K8sHelmService).getHelmObjects(''))
+            .to.be.rejectedWith('release name is required');
+    }
+
+    @test
+    async checkGetHelmDeploymentFail() {
+        await chai
+            .expect(Container.get(K8sHelmService).getHelmDeployment(''))
+            .to.be.rejectedWith('release name is required');
+    }
 }
