@@ -93,6 +93,27 @@ class K8sApplyObjectActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
     }
 
     @test()
+    async failApplyObject(): Promise<void> {
+        const actionHandler = new K8sApplyObjectActionHandler();
+        const context = ContextUtil.generateEmptyContext();
+        const snapshot = new ActionSnapshot('.', {}, '', 0, {});
+
+        const obj = {
+            kind: 'Foo',
+            apiVersion: 'v1',
+            metadata: {
+                name: 'custom-obj-test',
+            },
+        };
+
+        await actionHandler.validate(obj, context, snapshot, {});
+
+        await chai
+            .expect(actionHandler.execute(obj, context, snapshot, {}))
+            .to.be.rejectedWith(`Unable to apply K8s object with name: custom-obj-test and kind:`);
+    }
+
+    @test()
     async registerCustomObject(): Promise<void> {
         const actionHandler = new K8sApplyObjectActionHandler();
         const context = ContextUtil.generateEmptyContext();
