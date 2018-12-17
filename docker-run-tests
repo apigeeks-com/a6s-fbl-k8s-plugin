@@ -45,10 +45,6 @@ done
 # navigate to project dir
 cd /usr/app
 
-# run tests
-echo "-> building plugin..."
-yarn build
-
 echo "-> running tests..."
 yarn test
 exit_code=$?
