@@ -122,7 +122,7 @@ class K8sApplyTLSSecretActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
         const context = ContextUtil.generateEmptyContext();
         const snapshot = new ActionSnapshot('.', {}, '', 0, {});
 
-        const assetsDir = join(__dirname, '../../../../test/assets');
+        const assetsDir = join(process.cwd(), 'test/assets');
         const cert = await promisify(readFile)(join(assetsDir, 'cert.crt'), 'utf8');
         const key = await promisify(readFile)(join(assetsDir, 'cert.key'), 'utf8');
 
@@ -165,7 +165,7 @@ class K8sApplyTLSSecretActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
         const context = ContextUtil.generateEmptyContext();
         const snapshot = new ActionSnapshot('.', {}, '', 0, {});
 
-        const assetsDir = join(__dirname, '../../../../test/assets');
+        const assetsDir = join(process.cwd(), 'test/assets');
         const cert = join(assetsDir, 'cert.crt');
         const key = join(assetsDir, 'cert.key');
 

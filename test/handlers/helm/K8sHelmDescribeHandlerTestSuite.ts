@@ -56,7 +56,7 @@ class K8sHelmDescribeHandlerTestSuite extends K8sHelmBaseTestSuite {
     @test()
     async describeHelm(): Promise<void> {
         const name = 'delete-helm-test';
-        const assetsDir = join(__dirname, '../../../../test/assets');
+        const assetsDir = join(process.cwd(), 'test/assets');
 
         // install helm chart
         let result = await Container.get(K8sHelmService).execHelmCommand(

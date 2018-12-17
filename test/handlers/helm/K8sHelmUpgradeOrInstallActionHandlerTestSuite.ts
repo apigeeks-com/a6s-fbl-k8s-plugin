@@ -52,7 +52,7 @@ class K8sHelmUpgradeOrInstallActionHandlerTestSuite extends K8sHelmBaseTestSuite
 
     @test()
     async installHelm(): Promise<void> {
-        const assetsDir = join(__dirname, '../../../../test/assets');
+        const assetsDir = join(process.cwd(), 'test/assets');
 
         const actionHandler = new K8sHelmUpgradeOrInstallActionHandler();
         const context = ContextUtil.generateEmptyContext();
@@ -82,7 +82,7 @@ class K8sHelmUpgradeOrInstallActionHandlerTestSuite extends K8sHelmBaseTestSuite
 
     @test()
     async checkVariablesInline() {
-        const assetsDir = join(__dirname, '../../../../test/assets');
+        const assetsDir = join(process.cwd(), 'test/assets');
 
         const actionHandler = new K8sHelmUpgradeOrInstallActionHandler();
         const context = ContextUtil.generateEmptyContext();
