@@ -179,8 +179,12 @@ export class K8sHelmService {
     async getHelmObjects(name: string) {
         const helmResult = await this.execHelmCommand(['get', name]);
 
-        if (helmResult.stdout.indexOf('Error') === 0) {
-            throw new Error(helmResult.stdout);
+        if (helmResult.code !== 0) {
+            throw new Error(
+                `Unable to get helm k8s objects, command returned non-zero exit code. Code: ${
+                    helmResult.code
+                }\nstderr: ${helmResult.stderr}\nstdout: ${helmResult.stdout}`,
+            );
         }
 
         const objects = helmResult.stdout.split('---\n');
@@ -199,8 +203,12 @@ export class K8sHelmService {
     async getHelmDeployment(name: string): Promise<IHelmDeploymentInfo> {
         const helmResult = await this.execHelmCommand(['get', name]);
 
-        if (helmResult.stdout.indexOf('Error') === 0) {
-            throw new Error(helmResult.stdout);
+        if (helmResult.code !== 0) {
+            throw new Error(
+                `Unable to get helm deployment information, command returned non-zero exit code. Code: ${
+                    helmResult.code
+                }\nstderr: ${helmResult.stderr}\nstdout: ${helmResult.stdout}`,
+            );
         }
 
         const matches = helmResult.stdout.split(/^([A-Z]{2,}[^:]+):/gm);
