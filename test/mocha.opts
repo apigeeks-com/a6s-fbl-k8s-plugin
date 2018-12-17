@@ -1,7 +1,6 @@
 --timeout 120000
 --ui mocha-typescript
---require source-map-support/register
-dist/test/**/**/*.js
-dist/test/**/*.js
+--require ts-node/register
 --reporter mochawesome
 --reporter-options output=coverage/testReport.html
+test/**/*.ts

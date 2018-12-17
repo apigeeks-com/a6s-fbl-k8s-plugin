@@ -68,7 +68,7 @@ export class K8sCleanupActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
 
     @test()
     async cleanupHelms() {
-        const assetsDir = join(__dirname, '../../../test/assets');
+        const assetsDir = join(process.cwd(), 'test/assets');
         const context = ContextUtil.generateEmptyContext();
         const snapshot = new ActionSnapshot('.', {}, assetsDir, 0, {});
         const helmUpgradeOrInstallActionHandler = new K8sHelmUpgradeOrInstallActionHandler();
@@ -262,7 +262,7 @@ export class K8sCleanupActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
     async checkIgnoredHelm() {
         const helmUpgradeOrInstallActionHandler = new K8sHelmUpgradeOrInstallActionHandler();
         const cleanupService = Container.get(K8sCleanupService);
-        const assetsDir = join(__dirname, '../../../test/assets');
+        const assetsDir = join(process.cwd(), 'test/assets');
         const context = ContextUtil.generateEmptyContext();
         const snapshot = new ActionSnapshot('.', {}, assetsDir, 0, {});
 
@@ -383,7 +383,7 @@ export class K8sCleanupActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
     }
 
     private async applyTestObjects(deployedObject: object, clusterObject: object, kind: string) {
-        const assetsDir = join(__dirname, '../../../test/assets');
+        const assetsDir = join(process.cwd(), 'test/assets');
         const applyK8sObjectActionHandler = new K8sApplyObjectActionHandler();
         const context = ContextUtil.generateEmptyContext();
         const snapshot = new ActionSnapshot('.', {}, '', 0, {});

@@ -52,24 +52,33 @@
     "nyc": "13.1.0",
     "prettier": "1.15.3",
     "rimraf": "2.6.2",
-    "source-map-support": "0.5.9",
+    "ts-node": "7.0.1",
     "tslint": "5.11.0",
     "tslint-config-prettier": "1.17.0",
     "typescript": "3.1.6",
     "yarn-check": "0.0.3"
   },
   "nyc": {
+    "include": [
+      "src/**/*.{js,ts}"
+    ],
+    "exclude": [
+      "**/node_modules/**",
+      "**/I[A-Z]*.ts"
+    ],
+    "extension": [
+      ".js",
+      ".ts"
+    ],
+    "require": [
+      "ts-node/register"
+    ],
     "check-coverage": true,
     "per-file": true,
     "lines": 100,
     "statements": 100,
     "functions": 100,
-    "branches": 100,
-    "exclude": [
-      "dist/src/**/index.js",
-      "dist/index.js",
-      "dist/test/**/*.js"
-    ]
+    "branches": 100
   },
   "keywords": [
     "fbl",
