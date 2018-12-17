@@ -115,6 +115,7 @@ class K8sDeleteObjectActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
         // delete object
         const options = {
             kind: 'ConfigMap',
+            namespace: 'default',
             name: 'delete-obj-test',
         };
         await deleteActionHandler.validate(options, context, snapshot, {});
@@ -136,5 +137,21 @@ class K8sDeleteObjectActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
             result.stderr.trim(),
             `Error from server (NotFound): configmaps "${obj.metadata.name}" not found`,
         );
+    }
+
+    @test()
+    async failDeleteObject(): Promise<void> {
+        const deleteActionHandler = new K8sDeleteObjectActionHandler();
+        const context = ContextUtil.generateEmptyContext();
+        const snapshot = new ActionSnapshot('.', {}, '', 0, {});
+
+        const options = {
+            kind: 'Foo',
+            name: 'boo',
+        };
+
+        await deleteActionHandler.validate(options, context, snapshot, {});
+
+        await chai.expect(deleteActionHandler.execute(options, context, snapshot, {})).to.be.rejected;
     }
 }
