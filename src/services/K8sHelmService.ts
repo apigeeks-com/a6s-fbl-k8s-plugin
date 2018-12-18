@@ -167,7 +167,7 @@ export class K8sHelmService {
     async isDeploymentExists(name: string): Promise<boolean> {
         const helmResult = await this.execHelmCommand(['get', name]);
 
-        return helmResult.stdout.trim() !== `Error: release: "${name}" not found`;
+        return helmResult.stderr.trim() !== `Error: release: "${name}" not found`;
     }
 
     /**

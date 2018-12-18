@@ -68,6 +68,8 @@ class K8sHelmUpgradeOrInstallActionHandlerTestSuite extends K8sHelmBaseTestSuite
         };
 
         await actionHandler.validate(options, context, snapshot, {});
+
+        // create helm
         await actionHandler.execute(options, context, snapshot, {});
 
         const result = await Container.get(K8sHelmService).execHelmCommand(['list', '-q']);
@@ -77,7 +79,12 @@ class K8sHelmUpgradeOrInstallActionHandlerTestSuite extends K8sHelmBaseTestSuite
         }
 
         assert.deepStrictEqual(result.stdout.trim(), options.name);
-        assert.deepStrictEqual(context.entities.registered[0].payload, options);
+        assert.deepStrictEqual(context.entities.created[0].payload, options);
+
+        // update helm
+        await actionHandler.execute(options, context, snapshot, {});
+
+        assert.deepStrictEqual(context.entities.updated[0].payload, options);
     }
 
     @test()
@@ -102,7 +109,6 @@ class K8sHelmUpgradeOrInstallActionHandlerTestSuite extends K8sHelmBaseTestSuite
         await actionHandler.execute(options, context, snapshot, {});
 
         assert.deepStrictEqual(context.entities.registered[0].payload, options);
-        assert.deepStrictEqual(context.entities.updated[0].payload, options);
     }
 
     @test()
@@ -148,5 +154,28 @@ class K8sHelmUpgradeOrInstallActionHandlerTestSuite extends K8sHelmBaseTestSuite
         await chai
             .expect(Container.get(K8sHelmService).getHelmDeployment(''))
             .to.be.rejectedWith('release name is required');
+    }
+
+    @test()
+    async helmNoExistLocally(): Promise<void> {
+        const actionHandler = new K8sHelmUpgradeOrInstallActionHandler();
+        const context = ContextUtil.generateEmptyContext();
+        const snapshot = new ActionSnapshot('.', {}, '', 0, {});
+
+        const options = {
+            chart: 'stable/nginx-ingress',
+            name: 'helm-no-exist-locally',
+        };
+
+        await actionHandler.validate(options, context, snapshot, {});
+        await actionHandler.execute(options, context, snapshot, {});
+
+        const result = await Container.get(K8sHelmService).execHelmCommand(['list', '-q']);
+
+        if (result.code !== 0) {
+            throw new Error(`code: ${result.code};\nstdout: ${result.stdout};\nstderr: ${result.stderr}`);
+        }
+
+        assert.deepStrictEqual(result.stdout.trim(), options.name);
     }
 }
