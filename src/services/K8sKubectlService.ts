@@ -102,31 +102,6 @@ export class K8sKubectlService {
     }
 
     /**
-     * Create new K8s Object
-     * @param {IK8sObject} k8sObject
-     * @param {IContext} context
-     * @returns {Promise<void>}
-     */
-    async createObject(k8sObject: IK8sObject, context: IContext): Promise<void> {
-        const tmpFile = await this.tempPathsRegistry.createTempFile(false, '.yml');
-        await promisify(writeFile)(tmpFile, dump(k8sObject), 'utf8');
-
-        const result = await this.execKubectlCommand(['create', '-f', tmpFile]);
-
-        if (result.code !== 0) {
-            throw new Error(
-                `Unable to create K8s object with name: ${k8sObject.metadata.name} and kind: ${k8sObject.kind} Error: ${
-                    result.stderr
-                }`,
-            );
-        }
-
-        const contextEntity = K8sKubectlService.createEntity(k8sObject);
-        context.entities.registered.push(contextEntity);
-        context.entities.created.push(contextEntity);
-    }
-
-    /**
      * Apply object
      * @param {IK8sObject} k8sObject
      * @param {IContext} context

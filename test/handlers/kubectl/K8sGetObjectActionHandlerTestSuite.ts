@@ -116,6 +116,7 @@ class K8sGetObjectActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
         const options = {
             kind: obj.kind,
             name: obj.metadata.name,
+            namespace: 'default',
             assignTo: {
                 ctx: '$.test',
                 secrets: '$.test',
