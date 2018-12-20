@@ -155,7 +155,9 @@ export class K8sHelmService {
             result.stdout
                 .split('\n')
                 .map(l => l.trim())
-                .filter(l => l) || []
+                .filter(l => l) ||
+            /* istanbul ignore next */
+            []
         );
     }
 
@@ -221,8 +223,16 @@ export class K8sHelmService {
             revision: result['REVISION'].replace(/\n/g, ''),
             released: result['RELEASED'] && new Date(result['RELEASED'].replace(/\n/g, '')),
             chart: result['CHART'].replace(/\n/g, ''),
-            userSuppliedValues: result['USER-SUPPLIED VALUES'] && (yaml.safeLoad(result['USER-SUPPLIED VALUES']) || {}),
-            computedValues: result['COMPUTED VALUES'] && (yaml.safeLoad(result['COMPUTED VALUES']) || {}),
+            userSuppliedValues:
+                result['USER-SUPPLIED VALUES'] &&
+                (yaml.safeLoad(result['USER-SUPPLIED VALUES']) ||
+                    /* istanbul ignore next */
+                    {}),
+            computedValues:
+                result['COMPUTED VALUES'] &&
+                (yaml.safeLoad(result['COMPUTED VALUES']) ||
+                    /* istanbul ignore next */
+                    {}),
         };
     }
 }
