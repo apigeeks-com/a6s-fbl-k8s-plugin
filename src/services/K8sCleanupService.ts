@@ -14,10 +14,10 @@ export class K8sCleanupService {
     private static defaultKinds = ['PersistentVolumeClaim', 'StorageClass', 'Secret', 'ConfigMap'];
 
     @Inject(() => K8sKubectlService)
-    private k8sKubectlService: K8sKubectlService;
+    protected k8sKubectlService: K8sKubectlService;
 
     @Inject(() => K8sHelmService)
-    private k8sHelmService: K8sHelmService;
+    protected k8sHelmService: K8sHelmService;
 
     /**
      * Clean cluster
@@ -41,7 +41,9 @@ export class K8sCleanupService {
             )
         );
 
-        await this.cleanUpHelmReleases(options, context, snapshot, registeredHelmReleases);
+        const deployedHelms = await this.k8sHelmService.listInstalledHelms();
+
+        await this.cleanUpHelmReleases(options, context, snapshot, registeredHelmReleases, deployedHelms);
 
         for (const kind of kinds) {
             const deployedK8sObjects = context.entities.registered
@@ -69,18 +71,21 @@ export class K8sCleanupService {
      * @param {IContext} context
      * @param {ActionSnapshot} snapshot
      * @param {string[]} registeredHelmReleases
+     * @param {string[]} deployedHelms
      * @return {Promise<void>}
      */
-    private async cleanUpHelmReleases(
+    protected async cleanUpHelmReleases(
         options: IK8sCleanupOptions,
         context: IContext,
         snapshot: ActionSnapshot,
         registeredHelmReleases: string[],
+        deployedHelms: string[],
     ): Promise<void> {
         const ignoredHelms = registeredHelmReleases;
         const ignoredPatterns = get(options, 'ignored.helms', []);
-        const diff = this.findOrphans(await this.k8sHelmService.listInstalledHelms(), ignoredHelms).filter(d => {
+        const diff = this.findOrphans(deployedHelms, ignoredHelms).filter(d => {
             for (const pattern of ignoredPatterns) {
+                /* istanbul ignore else */
                 if (minimatch(d, pattern)) {
                     return false;
                 }
@@ -116,7 +121,7 @@ export class K8sCleanupService {
      * @param {string[]} ignoredPatterns
      * @return {Promise<void>}
      */
-    private async cleanupK8sObjects(
+    protected async cleanupK8sObjects(
         options: IK8sCleanupOptions,
         context: IContext,
         snapshot: ActionSnapshot,
