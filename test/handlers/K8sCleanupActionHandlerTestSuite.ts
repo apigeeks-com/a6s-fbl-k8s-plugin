@@ -222,7 +222,7 @@ export class K8sCleanupActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
     }
 
     @test()
-    async dryRun() {
+    async dryRunK8sObject() {
         Container.get(FlowService).debug = true;
         const applyK8sObjectActionHandler = new K8sApplyObjectActionHandler();
         const actionHandler = new K8sCleanupActionHandler();
@@ -256,6 +256,43 @@ export class K8sCleanupActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
 
         const lastLog = logs.pop();
         assert(lastLog.indexOf(`Found following ConfigMaps to be cleaned up: ${k8sObject.metadata.name}`) >= 0);
+    }
+
+    @test()
+    async dryRunHelm() {
+        Container.get(FlowService).debug = true;
+        const assetsDir = join(process.cwd(), 'test/assets');
+        const context = ContextUtil.generateEmptyContext();
+        let snapshot = new ActionSnapshot('.', {}, assetsDir, 0, {});
+        const helmUpgradeOrInstallActionHandler = new K8sHelmUpgradeOrInstallActionHandler();
+
+        const optionsHelm = {
+            chart: 'helm/sample',
+            name: 'helm-cleanup-dry-run',
+        };
+
+        await helmUpgradeOrInstallActionHandler.validate(optionsHelm, context, snapshot, {});
+        await helmUpgradeOrInstallActionHandler.execute(optionsHelm, context, snapshot, {});
+
+        context.entities.registered.pop();
+
+        const actionHandler = new K8sCleanupActionHandler();
+
+        snapshot = new ActionSnapshot('.', {}, '', 0, {});
+        const cleanupOptions = {
+            dryRun: true,
+            namespace: 'default',
+        };
+
+        await actionHandler.validate(cleanupOptions, context, snapshot, {});
+        await actionHandler.execute(cleanupOptions, context, snapshot, {});
+
+        const logs: string[] = await snapshot
+            .getSteps()
+            .filter((step: IActionStep) => step.type === 'log')
+            .map(log => log.payload);
+
+        assert(logs[0].indexOf(`Found following helm releases to be cleaned up: ${optionsHelm.name}`) >= 0);
     }
 
     @test()

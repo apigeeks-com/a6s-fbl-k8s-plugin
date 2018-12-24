@@ -131,4 +131,10 @@ class K8sHelmDescribeHandlerTestSuite extends K8sHelmBaseTestSuite {
         assert.deepStrictEqual(context.ctx.objects.assignTo.map((o: IK8sObject) => o.kind), ['Service', 'Deployment']);
         assert.deepStrictEqual(context.ctx.objects.pushTo[0].map((o: IK8sObject) => o.kind), ['Service', 'Deployment']);
     }
+
+    @test()
+    async checkParseYaml(): Promise<void> {
+        const yamlParser = await Container.get(K8sHelmService).parseYaml('', {});
+        assert.deepStrictEqual(yamlParser, {});
+    }
 }
