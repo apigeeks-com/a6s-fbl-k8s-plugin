@@ -128,6 +128,20 @@ class K8sGetObjectActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
         await getActionHandler.validate(options, context, snapshot, {});
         await getActionHandler.execute(options, context, snapshot, {});
 
+        const optionsWithoutNamespace = {
+            kind: obj.kind,
+            name: obj.metadata.name,
+            assignTo: {
+                ctx: '$.test',
+                secrets: '$.test',
+            },
+            pushTo: {
+                ctx: '$.testPush',
+            },
+        };
+        await getActionHandler.validate(optionsWithoutNamespace, context, snapshot, {});
+        await getActionHandler.execute(optionsWithoutNamespace, context, snapshot, {});
+
         assert.strictEqual(context.ctx.test.kind, obj.kind);
         assert.strictEqual(context.ctx.test.kind, obj.kind);
         assert.deepStrictEqual(context.ctx.test.data, obj.data);
@@ -136,5 +150,43 @@ class K8sGetObjectActionHandlerTestSuite extends K8sBaseHandlerTestSuite {
         assert.strictEqual(context.secrets.test.kind, obj.kind);
         assert.strictEqual(context.secrets.test.kind, obj.kind);
         assert.deepStrictEqual(context.secrets.test.data, obj.data);
+    }
+
+    @test()
+    async getObjectFail(): Promise<void> {
+        const getActionHandler = new K8sGetObjectActionHandler();
+        const context = ContextUtil.generateEmptyContext();
+        const snapshot = new ActionSnapshot('.', {}, '', 0, {});
+        // get object
+        const optionsNotExist = {
+            kind: 'ConfigMap',
+            name: 'configmap-fail',
+            namespace: 'default',
+            assignTo: {
+                ctx: '$.test',
+                secrets: '$.test',
+            },
+            pushTo: {
+                ctx: '$.testPush',
+            },
+        };
+        await getActionHandler.validate(optionsNotExist, context, snapshot, {});
+
+        await chai
+            .expect(getActionHandler.execute(optionsNotExist, context, snapshot, {}))
+            .to.be.rejectedWith(`Object ${optionsNotExist.kind} with name ${optionsNotExist.name} not found`);
+
+        const optionsUnexpected = {
+            kind: 'custom-unexpected',
+            name: 'configmap-unexpected',
+        };
+
+        await chai
+            .expect(getActionHandler.execute(optionsUnexpected, context, snapshot, {}))
+            .to.be.rejectedWith(
+                `Unexpected error occurred upon getting object ${optionsUnexpected.kind} with name ${
+                    optionsUnexpected.name
+                }. error: the server doesn't have a resource type "${optionsUnexpected.kind}"`,
+            );
     }
 }

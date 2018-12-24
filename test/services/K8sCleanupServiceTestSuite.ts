@@ -51,13 +51,23 @@ class K8sCleanupServiceTestSuite {
         const snapshot = new ActionSnapshot('.', {}, '', 0, {});
         const cleanupOptions = {
             dryRun: false,
+            ignored: {
+                objects: {},
+                helms: ['fake-existed-helm'],
+            },
             namespace: 'default',
         };
 
         const helmName = 'helm-not-exist';
         const deployedHems = [helmName];
 
-        await cleanupService.cleanUpHelmReleasesMock(cleanupOptions, context, snapshot, [], deployedHems);
+        await cleanupService.cleanUpHelmReleasesMock(
+            cleanupOptions,
+            context,
+            snapshot,
+            ['fake-existed-helm'],
+            deployedHems,
+        );
 
         const logs: string[] = await snapshot
             .getSteps()
