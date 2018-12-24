@@ -1,19 +1,13 @@
-import { K8sCleanupService, K8sHelmService, K8sKubectlService } from '../../src/services';
+import { K8sCleanupService } from '../../src/services';
 import { IK8sCleanupOptions, IK8sObject } from '../../src/interfaces';
 import { ContextUtil, ActionSnapshot, FlowService, IActionStep, IContext } from 'fbl';
 import { suite, test } from 'mocha-typescript';
-import { Container } from 'typedi';
+import { Container, Service } from 'typedi';
 import * as assert from 'assert';
 
-@suite()
-export class K8sCleanupServiceTestSuite extends K8sCleanupService {
-    constructor() {
-        super();
-        this.k8sHelmService = Container.get(K8sHelmService);
-        this.k8sKubectlService = Container.get(K8sKubectlService);
-    }
-
-    cleanUpHelms(
+@Service()
+class K8sCleanupServiceMock extends K8sCleanupService {
+    cleanUpHelmReleasesMock(
         options: IK8sCleanupOptions,
         context: IContext,
         snapshot: ActionSnapshot,
@@ -23,7 +17,7 @@ export class K8sCleanupServiceTestSuite extends K8sCleanupService {
         return super.cleanUpHelmReleases(options, context, snapshot, registeredHelmReleases, deployedHelms);
     }
 
-    cleanUpK8sObjects(
+    cleanupK8sObjectsMock(
         options: IK8sCleanupOptions,
         context: IContext,
         snapshot: ActionSnapshot,
@@ -44,10 +38,14 @@ export class K8sCleanupServiceTestSuite extends K8sCleanupService {
             ignoredPatterns,
         );
     }
+}
 
+@suite()
+class K8sCleanupServiceTestSuite {
     @test()
     async failCleanupHelms() {
         Container.get(FlowService).debug = true;
+        const cleanupService = Container.get(K8sCleanupServiceMock);
 
         const context = ContextUtil.generateEmptyContext();
         const snapshot = new ActionSnapshot('.', {}, '', 0, {});
@@ -59,7 +57,7 @@ export class K8sCleanupServiceTestSuite extends K8sCleanupService {
         const helmName = 'helm-not-exist';
         const deployedHems = [helmName];
 
-        await this.cleanUpHelms(cleanupOptions, context, snapshot, [], deployedHems);
+        await cleanupService.cleanUpHelmReleasesMock(cleanupOptions, context, snapshot, [], deployedHems);
 
         const logs: string[] = await snapshot
             .getSteps()
@@ -72,6 +70,7 @@ export class K8sCleanupServiceTestSuite extends K8sCleanupService {
     @test()
     async failCleanupK8sObjects() {
         Container.get(FlowService).debug = true;
+        const cleanupService = Container.get(K8sCleanupServiceMock);
 
         const context = ContextUtil.generateEmptyContext();
         const snapshot = new ActionSnapshot('.', {}, '', 0, {});
@@ -82,7 +81,7 @@ export class K8sCleanupServiceTestSuite extends K8sCleanupService {
             kind: 'ConfigMap',
         };
 
-        await this.cleanUpK8sObjects(
+        await cleanupService.cleanupK8sObjectsMock(
             cleanupOptions,
             context,
             snapshot,

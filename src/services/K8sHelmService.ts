@@ -150,14 +150,10 @@ export class K8sHelmService {
     async listInstalledHelms(): Promise<string[]> {
         const result = await this.execHelmCommand(['list', '-q']);
 
-        return (
-            result.stdout
-                .split('\n')
-                .map(l => l.trim())
-                .filter(l => l) ||
-            /* istanbul ignore next */
-            []
-        );
+        return result.stdout
+            .split('\n')
+            .map(l => l.trim())
+            .filter(l => l);
     }
 
     /**

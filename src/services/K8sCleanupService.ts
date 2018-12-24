@@ -14,10 +14,10 @@ export class K8sCleanupService {
     private static defaultKinds = ['PersistentVolumeClaim', 'StorageClass', 'Secret', 'ConfigMap'];
 
     @Inject(() => K8sKubectlService)
-    protected k8sKubectlService: K8sKubectlService;
+    private k8sKubectlService: K8sKubectlService;
 
     @Inject(() => K8sHelmService)
-    protected k8sHelmService: K8sHelmService;
+    private k8sHelmService: K8sHelmService;
 
     /**
      * Clean cluster
