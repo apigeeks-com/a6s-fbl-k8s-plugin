@@ -15,7 +15,6 @@ export class K8sHelmService {
 
     @Inject(() => TempPathsRegistry)
     private tempPathsRegistry: TempPathsRegistry;
-
     /**
      * Execute "helm" command
      * @param {string[]} args
@@ -223,16 +222,21 @@ export class K8sHelmService {
             revision: result['REVISION'].replace(/\n/g, ''),
             released: result['RELEASED'] && new Date(result['RELEASED'].replace(/\n/g, '')),
             chart: result['CHART'].replace(/\n/g, ''),
-            userSuppliedValues:
-                result['USER-SUPPLIED VALUES'] &&
-                (yaml.safeLoad(result['USER-SUPPLIED VALUES']) ||
-                    /* istanbul ignore next */
-                    {}),
-            computedValues:
-                result['COMPUTED VALUES'] &&
-                (yaml.safeLoad(result['COMPUTED VALUES']) ||
-                    /* istanbul ignore next */
-                    {}),
+            userSuppliedValues: result['USER-SUPPLIED VALUES'] && this.parseYaml(result['USER-SUPPLIED VALUES'], {}),
+            computedValues: result['COMPUTED VALUES'] && this.parseYaml(result['COMPUTED VALUES'], {}),
         };
+    }
+
+    /**
+     * @param {string} yamlValue
+     * @param {object} defaultValue
+     */
+    parseYaml(yamlValue: string, defaultValue: any) {
+        const parseResult = yaml.safeLoad(yamlValue);
+        if (parseResult === undefined) {
+            return defaultValue;
+        }
+
+        return parseResult;
     }
 }
