@@ -85,7 +85,6 @@ export class K8sCleanupService {
         const ignoredPatterns = get(options, 'ignored.helms', []);
         const diff = this.findOrphans(deployedHelms, ignoredHelms).filter(d => {
             for (const pattern of ignoredPatterns) {
-                /* istanbul ignore else */
                 if (minimatch(d, pattern)) {
                     return false;
                 }
