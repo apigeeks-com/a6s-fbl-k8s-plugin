@@ -163,11 +163,7 @@ export class K8sKubectlService {
             );
         }
 
-        if (result.stdout) {
-            return JSON.parse(result.stdout);
-        }
-
-        throw new Error('Unexpected error occurred ' + JSON.stringify(result));
+        return JSON.parse(result.stdout);
     }
 
     /**
