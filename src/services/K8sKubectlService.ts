@@ -173,10 +173,10 @@ export class K8sKubectlService {
      * @param {string} namespace
      * @return {Promise<string[]>}
      */
-    async listObjects(kind: string, namespace = ''): Promise<string[]> {
+    async listObjects(kind: string, namespace?: string): Promise<string[]> {
         const args = ['get', kind];
 
-        if (namespace !== '') {
+        if (namespace) {
             args.push('--namespace', namespace);
         }
 
