@@ -26,7 +26,7 @@ module.exports = <IPlugin>{
     version: packageJson.version,
 
     requires: {
-        fbl: `>=${packageJson.dependencies.fbl}`,
+        fbl: packageJson.peerDependencies.fbl,
         applications: ['kubectl', 'helm'],
     },
 
